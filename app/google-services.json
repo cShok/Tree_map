@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "252199244939",
+    "project_id": "fruit-tree-map",
+    "storage_bucket": "fruit-tree-map.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:252199244939:android:ace1184b57dbed5fa5308e",
+        "android_client_info": {
+          "package_name": "com.example.maptur"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "252199244939-6net6shl8pefsjso275u745dpp076i27.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBDM4XiMWx32qP6V9nWf9wDfnq_2ZVsN0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "252199244939-6net6shl8pefsjso275u745dpp076i27.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
