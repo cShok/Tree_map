@@ -19,12 +19,14 @@ import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.maptur.databinding.ActivityMapsBinding;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
     private ActivityMapsBinding binding;
     private FirebaseAuth mAuth;
+    private FirebaseFirestore db; // private??
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +42,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        // set db
+        db = FirebaseFirestore.getInstance();
     }
 
     @Override
@@ -52,15 +57,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -70,16 +67,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
         mMap.setOnMarkerClickListener(this::onMarkerClick);
-        mMap.setOnMapLongClickListener(new  GoogleMap.OnMapLongClickListener() {
+        mMap.setOnMapLongClickListener(this::onMapLongClick);
 
-            @Override
-            public void onMapLongClick(@NonNull LatLng latLng) {
-                mMap.addMarker(new MarkerOptions().position(latLng));
-            }
-        });
 
     }
 
+
+    public void onMapLongClick(LatLng latLng) {
+        /* need to check if sign in, if not, do nothing @eKurer*/
+        // check if in a public space
+        // pop the quiz qustion, first, do you wanna add tree...
+        // add a listner or once retrive the data
+        mMap.addMarker(new MarkerOptions().position(latLng));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        db.collection("markers").document("first");
+
+    }
     public boolean onMarkerClick(final Marker marker) {
 
         // Retrieve the data from the marker.
@@ -100,8 +103,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // marker is centered and for the marker's info window to open, if it has one).
         return false;
     }
-    public void onMapLongClick (LatLng point){
 
 
-    }
 }
