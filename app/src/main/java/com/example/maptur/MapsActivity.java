@@ -31,6 +31,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private FirebaseFirestore db; // private??
     private boolean signedIn = true;
 
+
+
     private Button notSignedButton;
     private TextView notSignedText;
 
@@ -71,7 +73,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Add a marker in Sydney and move the camera
         LatLng sydney = new LatLng(-34, 151);
 //      mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-//      mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+
+//       mMap.moveCamera(CameraUpdateFactory.newLatLng();
         mMap.setOnMarkerClickListener(this::onMarkerClick);
         mMap.setOnMapLongClickListener(this::onMapLongClick);
 
