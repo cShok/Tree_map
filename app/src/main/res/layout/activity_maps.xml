@@ -10,11 +10,33 @@
     tools:context=".MapsActivity" >
 
     <Button
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:layout_gravity="right|top"
-    android:text="Demo Button"
-    android:padding="10dp"
-    android:layout_marginTop="20dp"
-    android:paddingRight="10dp"/>
+        android:id="@+id/NotSigned"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="invisible"
+
+        />
+    <TextView
+        android:id="@+id/NotSignedText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_centerInParent="true"
+        android:layout_below="@+id/NotSigned"
+        android:text="please sign in first, before addding a tree"
+        android:textColor="@color/cardview_dark_background"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:background="@color/white"
+        android:visibility="invisible"
+
+        />
+<!--    <Button-->
+<!--    android:layout_width="wrap_content"-->
+<!--    android:layout_height="wrap_content"-->
+<!--    android:layout_gravity="right|top"-->
+<!--    android:text="Demo Button"-->
+<!--    android:padding="10dp"-->
+<!--    android:layout_marginTop="20dp"-->
+<!--    android:paddingRight="10dp"/>-->
     </fragment>
