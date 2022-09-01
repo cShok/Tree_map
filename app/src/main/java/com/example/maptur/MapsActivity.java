@@ -103,10 +103,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Placing a marker on the touched position
 
 
-        mMap.addMarker(new MarkerOptions().position(latLng));
+        mMap.addMarker(newMarker);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
         // after validation, add marker to the db
-        db.collection("markers").add(newMarker);
+//        db.collection("markers").add(newMarker);
 
     }
     public boolean onMarkerClick(final Marker marker) {
