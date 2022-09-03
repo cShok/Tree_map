@@ -38,17 +38,17 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
-    GoogleMap mMap;
-    ActivityMapsBinding binding;
-    FirebaseAuth mAuth;
-    FirebaseFirestore db; // private??
-    boolean signedIn = true;
-    GoogleSignInClient googleSignInClient;
-    SignInButton btSignIn;
-    FirebaseAuth firebaseAuth;
+    private GoogleMap mMap;
+    private ActivityMapsBinding binding;
+    private FirebaseAuth mAuth;
+    FirebaseFirestore db;
+    private boolean signedIn = true;
+    private GoogleSignInClient googleSignInClient;
+    private SignInButton btSignIn;
+    private Button btLogout;
 
-    Button notSignedButton;
-    TextView notSignedText;
+    private Button notSignedButton;
+    private TextView notSignedText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,13 +70,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Assign variable
         btSignIn=findViewById(R.id.bt_sign_in);
+        btLogout=findViewById(R.id.bt_logout);
+
 
         // Initialize sign in options
-        // the client-id is copied form
-        // google-services.json file
         GoogleSignInOptions googleSignInOptions=new GoogleSignInOptions.Builder(
                 GoogleSignInOptions.DEFAULT_SIGN_IN
-        ).requestIdToken("438431947620-ecpi41uk3dhhf4mv8g8q993k3vs49ltm.apps.googleusercontent.com")
+        ).requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
 
@@ -90,21 +90,53 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // Initialize sign in intent
                 Intent intent=googleSignInClient.getSignInIntent();
                 // Start activity for result
+                // todo: replace with https://stackoverflow.com/questions/62671106/onactivityresult-method-is-deprecated-what-is-the-alternative
                 startActivityForResult(intent,100);
             }
         });
 
-        // Initialize firebase auth
-        firebaseAuth=FirebaseAuth.getInstance();
-        // Initialize firebase user
-        FirebaseUser firebaseUser=firebaseAuth.getCurrentUser();
+        btLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Sign out from google
+                googleSignInClient.signOut().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        // Check condition
+                        if(task.isSuccessful())
+                        {
+                            // When task is successful
+                            // Sign out from firebase
+                            mAuth.signOut();
+                            // Display Toast
+                            Toast.makeText(getApplicationContext(), "Logout successful", Toast.LENGTH_SHORT).show();
+                            // Update UI
+                            updateUI();
+                        }
+                    }
+                });
+            }
+        });
+
+    }
+
+    private void updateUI() {
+        // Initialize google sign in account
+        GoogleSignInAccount googleSignInAccount=GoogleSignIn.getLastSignedInAccount(MapsActivity.this);
         // Check condition
-        if(firebaseUser!=null)
+        if(googleSignInAccount!=null)
         {
-            // When user already sign in
-            // redirect to profile activity
-            startActivity(new Intent(MapsActivity.this,ProfileActivity.class)
-                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+            // When google sign in account is not null
+            // Set visibility
+            btLogout.setVisibility(View.VISIBLE);
+            btSignIn.setVisibility(View.GONE);
+        }
+        else
+        {
+            // When google sign in account is null
+            // Set visibility
+            btLogout.setVisibility(View.GONE);
+            btSignIn.setVisibility(View.VISIBLE);
         }
     }
 
@@ -141,20 +173,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 .getCredential(googleSignInAccount.getIdToken()
                                         ,null);
                         // Check credential
-                        firebaseAuth.signInWithCredential(authCredential)
+                        mAuth.signInWithCredential(authCredential)
                                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                                     @Override
                                     public void onComplete(@NonNull Task<AuthResult> task) {
                                         // Check condition
+
                                         if(task.isSuccessful())
                                         {
-                                            // When task is successful
-                                            // Redirect to profile activity
-                                            startActivity(new Intent(MapsActivity.this
-                                                    ,ProfileActivity.class)
-                                                    .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
-                                            // Display Toast
                                             displayToast("Firebase authentication successful");
+                                            onStart();
                                         }
                                         else
                                         {
@@ -180,17 +208,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Toast.makeText(getApplicationContext(),s,Toast.LENGTH_SHORT).show();
     }
 
-
     @Override
     public void onStart() {
         super.onStart();
         // Check if user is signed in (non-null) and update UI accordingly.
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if(currentUser != null){
+            btSignIn.setVisibility(View.INVISIBLE);
+            btLogout.setVisibility(View.VISIBLE);
             currentUser.reload();
         }
     }
-
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -206,7 +234,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     }
-
 
     public void onMapLongClick(LatLng latLng) {
         /* need to check if sign in, if not, do nothing @eKurer*/
@@ -238,6 +265,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //        db.collection("markers").add(newMarker);
 
     }
+
     public boolean onMarkerClick(final Marker marker) {
 
         // Retrieve the data from the marker.
