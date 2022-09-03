@@ -1,5 +1,7 @@
 package com.example.maptur;
 
+import java.lang.Thread.*;
+
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
 
@@ -29,12 +31,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ActivityMapsBinding binding;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db; // private??
-    private boolean signedIn = true;
 
+    private boolean signedIn = true;
+    int ansClick = 0;
 
 
     private Button notSignedButton;
     private TextView notSignedText;
+    private Button yes;
+    private Button no;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,8 +80,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //      mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
 
 //       mMap.moveCamera(CameraUpdateFactory.newLatLng();
-        mMap.setOnMarkerClickListener(this::onMarkerClick);
-        mMap.setOnMapLongClickListener(this::onMapLongClick);
+        mMap.setOnMarkerClickListener(this::onMarkerClick); //marker pushed
+        mMap.setOnMapLongClickListener(this::onMapLongClick);//long push
 
 
     }
@@ -96,20 +101,38 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             new Handler().postDelayed(() ->  notSignedText.setVisibility(View.INVISIBLE), 3000);
             return;
         }
-        MarkerOptions newMarker = new MarkerOptions();
-        // Setting the position for the marker
-        newMarker.position(latLng);
-        // Setting the title for the marker.
-        // This will be displayed on taping the marker
-        newMarker.title(latLng.latitude + " : " + latLng.longitude);
-
-        // Placing a marker on the touched position
 
 
-        mMap.addMarker(newMarker);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        // after validation, add marker to the db
-//        db.collection("markers").add(newMarker);
+        //buttun do you want to add tree?
+
+        yes = (Button) findViewById(R.id.wantToAddTreeY);
+        no = (Button) findViewById(R.id.wantToAddTreeN);
+
+        yes.setVisibility(View.VISIBLE);
+        no.setVisibility(View.VISIBLE);
+
+
+            yes.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    yes.setVisibility(View.INVISIBLE);
+                    no.setVisibility(View.INVISIBLE);
+
+                    addTree(latLng);
+
+                }
+            });
+            no.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    yes.setVisibility(View.INVISIBLE);
+                    no.setVisibility(View.INVISIBLE);
+
+
+                }
+
+            });
+
 
     }
     public boolean onMarkerClick(final Marker marker) {
@@ -133,5 +156,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return false;
     }
 
+    public void addTree(LatLng latLng){
+        MarkerOptions newMarker = new MarkerOptions();
+        // Setting the position for the marker
+        newMarker.position(latLng);
+        // Setting the title for the marker.
+        // This will be displayed on taping the marker
+        newMarker.title(latLng.latitude + " : " + latLng.longitude);
 
+        // Placing a marker on the touched position
+        mMap.addMarker(newMarker);
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        // after validation, add marker to the db
+
+        // need to implemnet clusters
+//        db.collection("markers").add(newMarker);
+    }
 }
