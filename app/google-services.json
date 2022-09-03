@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "252199244939-ouq5ocfvfbftu2a1o2jp7gvp7vn4q6e4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.maptur",
+            "certificate_hash": "9109af59a0a9148e2e442d875cac638278c7f1fd"
+          }
+        },
+        {
           "client_id": "252199244939-6net6shl8pefsjso275u745dpp076i27.apps.googleusercontent.com",
           "client_type": 3
         }
