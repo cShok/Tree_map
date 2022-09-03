@@ -42,7 +42,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ActivityMapsBinding binding;
     private FirebaseAuth mAuth;
     FirebaseFirestore db;
-    private boolean signedIn = true;
+    private boolean signedIn = false;
     private GoogleSignInClient googleSignInClient;
     private SignInButton btSignIn;
     private Button btLogout;
@@ -108,6 +108,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             // When task is successful
                             // Sign out from firebase
                             mAuth.signOut();
+                            signedIn = false;
                             // Display Toast
                             Toast.makeText(getApplicationContext(), "Logout successful", Toast.LENGTH_SHORT).show();
                             // Update UI
@@ -156,9 +157,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             {
                 // When google sign in successful
                 // Initialize string
-                String s="Google sign in successful";
+                //String s="Google sign in successful";
                 // Display Toast
-                displayToast(s);
+                //displayToast(s);
                 // Initialize sign in account
                 try {
                     // Initialize sign in account
@@ -182,6 +183,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         if(task.isSuccessful())
                                         {
                                             displayToast("Firebase authentication successful");
+                                            signedIn = true;
                                             onStart();
                                         }
                                         else
@@ -211,13 +213,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onStart() {
         super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        updateUI();
+        // I think update UI is a better approach than this if
+/*
+       FirebaseUser currentUser = mAuth.getCurrentUser();
         if(currentUser != null){
             btSignIn.setVisibility(View.INVISIBLE);
             btLogout.setVisibility(View.VISIBLE);
             currentUser.reload();
         }
+*/
     }
 
     @Override
