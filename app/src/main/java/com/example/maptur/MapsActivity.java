@@ -3,8 +3,10 @@ package com.example.maptur;
 import java.lang.Thread.*;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -13,6 +15,12 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -21,8 +29,13 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.example.maptur.databinding.ActivityMapsBinding;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -30,10 +43,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private ActivityMapsBinding binding;
     private FirebaseAuth mAuth;
-    private FirebaseFirestore db; // private??
 
-    private boolean signedIn = true;
-    int ansClick = 0;
+    FirebaseFirestore db;
+    private boolean signedIn = false;
+    private GoogleSignInClient googleSignInClient;
+    private SignInButton btSignIn;
+    private Button btLogout;
 
 
     private Button notSignedButton;
@@ -58,18 +73,163 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // set db
         db = FirebaseFirestore.getInstance();
+
+        // Assign variable
+        btSignIn=findViewById(R.id.bt_sign_in);
+        btLogout=findViewById(R.id.bt_logout);
+
+
+        // Initialize sign in options
+        GoogleSignInOptions googleSignInOptions=new GoogleSignInOptions.Builder(
+                GoogleSignInOptions.DEFAULT_SIGN_IN
+        ).requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+
+        // Initialize sign in client
+        googleSignInClient= GoogleSignIn.getClient(MapsActivity.this
+                ,googleSignInOptions);
+
+        btSignIn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Initialize sign in intent
+                Intent intent=googleSignInClient.getSignInIntent();
+                // Start activity for result
+                // todo: replace with https://stackoverflow.com/questions/62671106/onactivityresult-method-is-deprecated-what-is-the-alternative
+                startActivityForResult(intent,100);
+            }
+        });
+
+        btLogout.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Sign out from google
+                googleSignInClient.signOut().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        // Check condition
+                        if(task.isSuccessful())
+                        {
+                            // When task is successful
+                            // Sign out from firebase
+                            mAuth.signOut();
+                            signedIn = false;
+                            // Display Toast
+                            Toast.makeText(getApplicationContext(), "Logout successful", Toast.LENGTH_SHORT).show();
+                            // Update UI
+                            updateUI();
+                        }
+                    }
+                });
+            }
+        });
+
+    }
+
+    private void updateUI() {
+        // Initialize google sign in account
+        GoogleSignInAccount googleSignInAccount=GoogleSignIn.getLastSignedInAccount(MapsActivity.this);
+        // Check condition
+        if(googleSignInAccount!=null)
+        {
+            // When google sign in account is not null
+            // Set visibility
+            btLogout.setVisibility(View.VISIBLE);
+            btSignIn.setVisibility(View.GONE);
+        }
+        else
+        {
+            // When google sign in account is null
+            // Set visibility
+            btLogout.setVisibility(View.GONE);
+            btSignIn.setVisibility(View.VISIBLE);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        // Check condition
+        if(requestCode==100)
+        {
+            // When request code is equal to 100
+            // Initialize task
+            Task<GoogleSignInAccount> signInAccountTask= GoogleSignIn
+                    .getSignedInAccountFromIntent(data);
+
+            // check condition
+            if(signInAccountTask.isSuccessful())
+            {
+                // When google sign in successful
+                // Initialize string
+                //String s="Google sign in successful";
+                // Display Toast
+                //displayToast(s);
+                // Initialize sign in account
+                try {
+                    // Initialize sign in account
+                    GoogleSignInAccount googleSignInAccount=signInAccountTask
+                            .getResult(ApiException.class);
+                    // Check condition
+                    if(googleSignInAccount!=null)
+                    {
+                        // When sign in account is not equal to null
+                        // Initialize auth credential
+                        AuthCredential authCredential= GoogleAuthProvider
+                                .getCredential(googleSignInAccount.getIdToken()
+                                        ,null);
+                        // Check credential
+                        mAuth.signInWithCredential(authCredential)
+                                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<AuthResult> task) {
+                                        // Check condition
+
+                                        if(task.isSuccessful())
+                                        {
+                                            displayToast("Firebase authentication successful");
+                                            signedIn = true;
+                                            onStart();
+                                        }
+                                        else
+                                        {
+                                            // When task is unsuccessful
+                                            // Display Toast
+                                            displayToast("Authentication Failed :"+task.getException()
+                                                    .getMessage());
+                                        }
+                                    }
+                                });
+
+                    }
+                }
+                catch (ApiException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private void displayToast(String s) {
+        Toast.makeText(getApplicationContext(),s,Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onStart() {
         super.onStart();
-        // Check if user is signed in (non-null) and update UI accordingly.
-        FirebaseUser currentUser = mAuth.getCurrentUser();
+        updateUI();
+        // I think update UI is a better approach than this if
+/*
+       FirebaseUser currentUser = mAuth.getCurrentUser();
         if(currentUser != null){
+            btSignIn.setVisibility(View.INVISIBLE);
+            btLogout.setVisibility(View.VISIBLE);
             currentUser.reload();
         }
+*/
     }
-
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -85,7 +245,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     }
-
 
     public void onMapLongClick(LatLng latLng) {
         /* need to check if sign in, if not, do nothing @eKurer*/
@@ -135,6 +294,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     }
+
     public boolean onMarkerClick(final Marker marker) {
 
         // Retrieve the data from the marker.
@@ -156,6 +316,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return false;
     }
 
+
     public void addTree(LatLng latLng){
         MarkerOptions newMarker = new MarkerOptions();
         // Setting the position for the marker
@@ -172,4 +333,5 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // need to implemnet clusters
 //        db.collection("markers").add(newMarker);
     }
+
 }
