@@ -16,6 +16,34 @@
         android:visibility="invisible"
 
         />
+
+
+    <Button
+        android:id="@+id/wantToAddTreeY"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left|top"
+        android:visibility="invisible"
+        android:padding="10dp"
+        android:layout_marginTop="20dp"
+        android:paddingRight="10dp"
+        android:text="yes"
+        />
+
+    <Button
+        android:id="@+id/wantToAddTreeN"
+        android:layout_width="wrap_content"
+        android:layout_gravity="right|top"
+        android:layout_height="wrap_content"
+        android:visibility="invisible"
+        android:padding="10dp"
+        android:layout_marginTop="20dp"
+        android:paddingRight="10dp"
+        android:text="no"
+
+        />
+
+
     <TextView
         android:id="@+id/NotSignedText"
         android:layout_width="wrap_content"
