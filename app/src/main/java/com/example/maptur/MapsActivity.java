@@ -1,11 +1,5 @@
 package com.example.maptur;
 
-import java.lang.Thread.*;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,6 +9,11 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
+
+import com.example.maptur.databinding.ActivityMapsBinding;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
@@ -28,13 +27,11 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.example.maptur.databinding.ActivityMapsBinding;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -236,10 +233,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
 
         // Add a marker in Sydney and move the camera
-        LatLng sydney = new LatLng(-34, 151);
+        LatLng Jerusalem = new LatLng(31.7683, 35.2137);
 //      mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(Jerusalem));
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
 
-//       mMap.moveCamera(CameraUpdateFactory.newLatLng();
+        //mMap.moveCamera(CameraUpdateFactory.newLatLng();
         mMap.setOnMarkerClickListener(this::onMarkerClick); //marker pushed
         mMap.setOnMapLongClickListener(this::onMapLongClick);//long push
 
@@ -249,8 +248,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapLongClick(LatLng latLng) {
         /* need to check if sign in, if not, do nothing @eKurer*/
         // check if in a public space
-        // pop the quiz qustion, first, do you wanna add tree...
-        // add a listner or once retrive the data
+        // pop the quiz question, first, do you wanna add tree...
+        // add a listener or once retrieve the data
 
         if (!signedIn) { //pop-up/ sign in please?
             notSignedButton = (Button) findViewById(R.id.NotSigned);
@@ -262,7 +261,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
 
-        //buttun do you want to add tree?
+        //button do you want to add tree?
 
         yes = (Button) findViewById(R.id.wantToAddTreeY);
         no = (Button) findViewById(R.id.wantToAddTreeN);
@@ -309,7 +308,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             " has been clicked " + clickCount + " times.",
                     Toast.LENGTH_SHORT).show();
         }
-        Log.i("makrer count **" , "**********" + clickCount);
+        Log.i("marker count **" , "**********" + clickCount);
         // Return false to indicate that we have not consumed the event and that we wish
         // for the default behavior to occur (which is for the camera to move such that the
         // marker is centered and for the marker's info window to open, if it has one).
@@ -330,8 +329,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
         // after validation, add marker to the db
 
-        // need to implemnet clusters
-//        db.collection("markers").add(newMarker);
+        // need to implement clusters
+        db.collection("markers").add(newMarker);
     }
+
+
 
 }
