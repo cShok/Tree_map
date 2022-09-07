@@ -15,7 +15,7 @@
         android:layout_height="wrap_content"
         android:visibility="invisible"
 
-        />
+        tools:visibility="visible" />
 
 
     <Button
@@ -90,4 +90,37 @@
 <!--    android:padding="10dp"-->
 <!--    android:layout_marginTop="20dp"-->
 <!--    android:paddingRight="10dp"/>-->
+
+    <TextView
+        android:id="@+id/AddTreeForm"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center"
+        android:background="@color/white"
+        android:textColor="@color/cardview_dark_background"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:visibility="invisible"
+
+        tools:visibility="visible" />
+
+    <EditText
+        android:id="@+id/addTreeName"
+        android:text="בבקשה הכנס את סוג העץ"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:inputType="text"
+        android:textSize="15sp"
+        android:visibility="invisible"/>
+
+<!--    <ListView-->
+<!--        android:id="@+id/list"-->
+<!--        android:layout_width="fill_parent"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:divider="#b5b5b5"-->
+<!--        android:descendantFocusability="beforeDescendants"-->
+<!--        android:visibility="visible"  />-->
+
     </fragment>

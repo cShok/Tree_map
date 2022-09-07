@@ -6,6 +6,8 @@ import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -317,6 +319,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     public void addTree(LatLng latLng){
+
+        EditText treetype = (EditText) findViewById(R.id.addTreeName);
+        treetype.setVisibility(View.VISIBLE);
+
+        treetype.setOnClickListener(
+                new View.OnClickListener()
+                {
+                    public void onClick(View view)
+                    {
+                        Log.v("EditText", treetype.getText().toString());
+                        int i =0;
+                        while(i < 1000000) i++;
+                        treetype.setVisibility(View.INVISIBLE);
+                    }
+                });
+
+
+
         MarkerOptions newMarker = new MarkerOptions();
         // Setting the position for the marker
         newMarker.position(latLng);
@@ -330,7 +350,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // after validation, add marker to the db
 
         // need to implement clusters
-        db.collection("markers").add(newMarker);
+        //db.collection("markers").add(newMarker);
+
     }
 
 
