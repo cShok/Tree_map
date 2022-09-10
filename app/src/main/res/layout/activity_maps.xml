@@ -29,8 +29,7 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-        <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:tools="http://schemas.android.com/tools"
+        <fragment
             android:id="@+id/map"
             android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
@@ -92,20 +91,25 @@
                 android:id="@+id/bt_logout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="50dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="60dp"
                 android:layout_marginEnd="50dp"
                 android:layout_marginBottom="16dp"
                 android:text="@string/logout"
-                android:visibility="invisible" />
+                android:visibility="invisible"
+                android:background="@color/white"
+                android:textColor="@color/black"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                />
 
             <!--    sign in-->
             <com.google.android.gms.common.SignInButton
                 android:id="@+id/bt_sign_in"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="50dp"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="60dp"
                 android:layout_marginEnd="50dp"
                 android:layout_marginBottom="16dp" />
 
