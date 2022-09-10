@@ -24,12 +24,12 @@
             app:title="Fruit Tree map"
             app:navigationIcon="@drawable/ic_baseline_menu_24"
             android:background="@color/white"
+            app:titleTextColor="@color/black"
             />
 
     </com.google.android.material.appbar.AppBarLayout>
 
         <fragment xmlns:android="http://schemas.android.com/apk/res/android"
-            xmlns:map="http://schemas.android.com/apk/res-auto"
             xmlns:tools="http://schemas.android.com/tools"
             android:id="@+id/map"
             android:name="com.google.android.gms.maps.SupportMapFragment"
@@ -50,10 +50,10 @@
                 android:id="@+id/wantToAddTreeY"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="left|top"
-                android:layout_marginTop="20dp"
+                android:layout_gravity="left|center"
+                android:layout_marginTop="100dp"
                 android:padding="10dp"
-                android:paddingRight="10dp"
+                android:paddingRight="50dp"
                 android:text="yes"
                 android:visibility="invisible" />
 
@@ -61,10 +61,10 @@
                 android:id="@+id/wantToAddTreeN"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right|top"
-                android:layout_marginTop="20dp"
+                android:layout_gravity="right|center"
+                android:layout_marginTop="100dp"
                 android:padding="10dp"
-                android:paddingRight="10dp"
+                android:paddingLeft="50dp"
                 android:text="no"
                 android:visibility="invisible"
 
@@ -79,7 +79,7 @@
                 android:layout_centerInParent="true"
                 android:layout_gravity="center"
                 android:background="@color/white"
-                android:text="please sign in first, before addding a tree"
+                android:text="please sign in first, before adding a tree"
                 android:textColor="@color/cardview_dark_background"
                 android:textSize="20sp"
                 android:textStyle="bold"
@@ -93,8 +93,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginEnd="16dp"
+                android:layout_marginTop="50dp"
+                android:layout_marginEnd="50dp"
                 android:layout_marginBottom="16dp"
                 android:text="@string/logout"
                 android:visibility="invisible" />
@@ -109,14 +109,6 @@
                 android:layout_marginEnd="50dp"
                 android:layout_marginBottom="16dp" />
 
-            <!--    <Button-->
-            <!--    android:layout_width="wrap_content"-->
-            <!--    android:layout_height="wrap_content"-->
-            <!--    android:layout_gravity="right|top"-->
-            <!--    android:text="Demo Button"-->
-            <!--    android:padding="10dp"-->
-            <!--    android:layout_marginTop="20dp"-->
-            <!--    android:paddingRight="10dp"/>-->
         </fragment>
     </RelativeLayout>
     <com.google.android.material.navigation.NavigationView

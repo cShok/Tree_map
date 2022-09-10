@@ -254,7 +254,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onStart() {
         super.onStart();
         updateUI();
-        // I think update UI is a better approach than this if
+        // I think update UI is a better approach than this if statement
 /*
        FirebaseUser currentUser = mAuth.getCurrentUser();
         if(currentUser != null){
@@ -269,12 +269,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Add a marker in Sydney and move the camera
         LatLng Jerusalem = new LatLng(31.7683, 35.2137);
 //      mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(Jerusalem));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
-
         //mMap.moveCamera(CameraUpdateFactory.newLatLng();
         mMap.setOnMarkerClickListener(this::onMarkerClick); //marker pushed
         mMap.setOnMapLongClickListener(this::onMapLongClick);//long push
@@ -351,7 +349,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // marker is centered and for the marker's info window to open, if it has one).
         return false;
     }
-
 
     public void addTree(LatLng latLng){
         MarkerOptions newMarker = new MarkerOptions();
