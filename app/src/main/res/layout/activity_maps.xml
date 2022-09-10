@@ -80,7 +80,10 @@
                 android:background="@color/white"
                 android:text="please sign in first, before adding a tree"
                 android:textColor="@color/cardview_dark_background"
+                android:textSize="20sp"
+                android:textStyle="bold"
                 android:visibility="invisible"
+
                 />
 
             <!--    logout-->
@@ -96,8 +99,6 @@
                 android:visibility="invisible"
                 android:background="@color/white"
                 android:textColor="@color/black"
-                android:textSize="20sp"
-                android:textStyle="bold"
                 />
 
             <!--    sign in-->
