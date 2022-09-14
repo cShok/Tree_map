@@ -39,6 +39,8 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -47,13 +49,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private FirebaseAuth mAuth;
 
     FirebaseFirestore db;
-    private boolean signedIn = false;
+    private boolean signedIn;
     private GoogleSignInClient googleSignInClient;
     private SignInButton btSignIn;
     private Button btLogout;
 
-
-    private Button notSignedButton;
     private TextView notSignedText;
     private Button yes;
     private Button no;
@@ -157,16 +157,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return true;
             }
         });
-
+        updateUI();
 
     }
 
     private void updateUI() {
         // Initialize google sign in account
         GoogleSignInAccount googleSignInAccount=GoogleSignIn.getLastSignedInAccount(MapsActivity.this);
+
         // Check condition
         if(googleSignInAccount!=null)
         {
+            signedIn = true;
             // When google sign in account is not null
             // Set visibility
             btLogout.setVisibility(View.VISIBLE);
@@ -254,15 +256,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onStart() {
         super.onStart();
         updateUI();
-        // I think update UI is a better approach than this if statement
-/*
-       FirebaseUser currentUser = mAuth.getCurrentUser();
-        if(currentUser != null){
-            btSignIn.setVisibility(View.INVISIBLE);
-            btLogout.setVisibility(View.VISIBLE);
-            currentUser.reload();
-        }
-*/
     }
 
     @Override
@@ -270,14 +263,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap = googleMap;
 
         LatLng Jerusalem = new LatLng(31.7683, 35.2137);
-//      mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(Jerusalem));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
-        //mMap.moveCamera(CameraUpdateFactory.newLatLng();
         mMap.setOnMarkerClickListener(this::onMarkerClick); //marker pushed
         mMap.setOnMapLongClickListener(this::onMapLongClick);//long push
-
-
     }
 
     public void onMapLongClick(LatLng latLng) {
@@ -285,9 +274,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // check if in a public space
         // pop the quiz question, first, do you wanna add tree...
         // add a listener or once retrieve the data
+        updateUI();
 
         if (!signedIn) { //pop-up/ sign in please?
-            notSignedButton = (Button) findViewById(R.id.NotSigned);
             notSignedText = (TextView) findViewById(R.id.NotSignedText);
 
             notSignedText.setVisibility(View.VISIBLE);
@@ -295,17 +284,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return;
         }
 
-
         //button do you want to add tree?
-
         yes = (Button) findViewById(R.id.wantToAddTreeY);
         no = (Button) findViewById(R.id.wantToAddTreeN);
 
         yes.setVisibility(View.VISIBLE);
         no.setVisibility(View.VISIBLE);
 
-
-            yes.setOnClickListener(new View.OnClickListener() {
+        yes.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     yes.setVisibility(View.INVISIBLE);
@@ -315,7 +301,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 }
             });
-            no.setOnClickListener(new View.OnClickListener() {
+        no.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     yes.setVisibility(View.INVISIBLE);
@@ -325,7 +311,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
 
             });
-
 
     }
 
@@ -366,7 +351,5 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // need to implement clusters
         db.collection("markers").add(newMarker);
     }
-
-
 
 }
