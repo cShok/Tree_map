@@ -158,7 +158,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
         updateUI();
-
+        presentMarkers();
     }
 
     private void updateUI() {
@@ -181,6 +181,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             btLogout.setVisibility(View.GONE);
             btSignIn.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void presentMarkers(){
+        // pull all items in collection "markers" from firestore db
+        db.collection("markers")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            LatLng marker = new LatLng(document.getDouble("position.latitude"), document.getDouble("position.longitude"));
+                            mMap.addMarker(new MarkerOptions().position(marker).title(document.getString("title")));
+                        }
+                    } else {
+                        Log.w("TAG", "Error getting documents.", task.getException());
+                    }
+                });
+
     }
 
     @Override
