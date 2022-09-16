@@ -3,10 +3,14 @@ package com.example.maptur;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -57,6 +61,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private TextView notSignedText;
     private Button yes;
     private Button no;
+
+    private LinearLayout addTreeLinear;
+    private TextView addTreeText;
+    private EditText addTreeEdit;
+    Editable name;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,7 +173,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void updateUI() {
         // Initialize google sign in account
         GoogleSignInAccount googleSignInAccount=GoogleSignIn.getLastSignedInAccount(MapsActivity.this);
-
+        addTreeLinear = findViewById(R.id.form);
+        addTreeLinear.setVisibility(View.INVISIBLE);
         // Check condition
         if(googleSignInAccount!=null)
         {
@@ -302,6 +312,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         //button do you want to add tree?
+        //#TODO any other touch close them both?
+
         yes = (Button) findViewById(R.id.wantToAddTreeY);
         no = (Button) findViewById(R.id.wantToAddTreeN);
 
@@ -353,12 +365,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     public void addTree(LatLng latLng){
+
+
+        addTreeLinear = findViewById(R.id.form);
+        addTreeText = findViewById(R.id.treeNameText);
+        addTreeEdit = findViewById(R.id.treeNameEdit);
+
+        addTreeLinear.setVisibility(View.VISIBLE);
+        addTreeText.setVisibility(View.VISIBLE);
+        addTreeEdit.setVisibility(View.VISIBLE);
+        addTreeEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                name = addTreeEdit.getText();
+            }
+        });
+
+        updateUI();
+
         MarkerOptions newMarker = new MarkerOptions();
         // Setting the position for the marker
         newMarker.position(latLng);
         // Setting the title for the marker.
         // This will be displayed on taping the marker
-        newMarker.title(latLng.latitude + " : " + latLng.longitude);
+//        newMarker.title(name.toString());
 
         // Placing a marker on the touched position
         mMap.addMarker(newMarker);
