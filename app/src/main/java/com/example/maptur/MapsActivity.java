@@ -11,6 +11,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,9 +65,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Button no;
 
     private LinearLayout addTreeLinear;
-    private TextView addTreeText;
-    private EditText addTreeEdit;
-    Editable name;
+    private TextView addTreeText, addDesText;
+    private EditText addTreeEdit,addDesEdit ;
+
+    private RadioGroup treeCond;
+    Editable name, treeDes;
+    int treeCondSts, formSts;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -325,9 +331,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 public void onClick(View view) {
                     yes.setVisibility(View.INVISIBLE);
                     no.setVisibility(View.INVISIBLE);
-
-                    addTree(latLng);
-
+                    addTreeForm(latLng);
                 }
             });
         no.setOnClickListener(new View.OnClickListener() {
@@ -364,16 +368,37 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return false;
     }
 
-    public void addTree(LatLng latLng){
+ public void addTree(LatLng latLng)  {
+
+        updateUI();
+        MarkerOptions newMarker = new MarkerOptions();
+        // Setting the position for the marker
+        newMarker.position(latLng);
+        // Setting the title for the marker.
+        // This will be displayed on taping the marker
+        newMarker.title(name.toString());
+//
+        // Placing a marker on the touched position
+        mMap.addMarker(newMarker);
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        // after validation, add marker to the db
+
+        // need to implement clusters
+        db.collection("markers").add(newMarker);
+    }
+
+    public void addTreeForm(LatLng latLng)  {
 
 
         addTreeLinear = findViewById(R.id.form);
         addTreeText = findViewById(R.id.treeNameText);
         addTreeEdit = findViewById(R.id.treeNameEdit);
+        addDesText = findViewById(R.id.treeDescribeText);
+        addDesEdit = findViewById(R.id.treeDescribeEdit);
+        treeCond = findViewById(R.id.treeCondition);
 
         addTreeLinear.setVisibility(View.VISIBLE);
-        addTreeText.setVisibility(View.VISIBLE);
-        addTreeEdit.setVisibility(View.VISIBLE);
+
         addTreeEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -387,26 +412,39 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             @Override
             public void afterTextChanged(Editable editable) {
+
                 name = addTreeEdit.getText();
+
             }
         });
 
-        updateUI();
+        addDesEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
-        MarkerOptions newMarker = new MarkerOptions();
-        // Setting the position for the marker
-        newMarker.position(latLng);
-        // Setting the title for the marker.
-        // This will be displayed on taping the marker
-//        newMarker.title(name.toString());
+            }
 
-        // Placing a marker on the touched position
-        mMap.addMarker(newMarker);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        // after validation, add marker to the db
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
 
-        // need to implement clusters
-        db.collection("markers").add(newMarker);
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                treeDes = addDesEdit.getText();
+
+            }
+        });
+        treeCond.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup radioGroup, int i) {
+                treeCondSts = i;
+                addTree(latLng);
+            }
+        });
+
+
+
+
     }
-
 }

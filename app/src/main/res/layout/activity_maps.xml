@@ -123,6 +123,7 @@
             android:layout_marginTop="263dp"
             android:layout_marginEnd="94dp"
             android:layout_marginBottom="188dp"
+            android:background="#36A2D3"
             android:gravity="center"
             android:orientation="vertical"
             android:visibility="invisible">
@@ -130,12 +131,13 @@
             <TextView
                 android:id="@+id/treeNameText"
                 android:layout_width="157dp"
-                android:layout_height="93dp"
+                android:layout_height="19dp"
                 android:layout_gravity="center"
                 android:layout_weight="1"
                 android:singleLine="false"
                 android:text="Add the tree type"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:visibility="visible" />
 
             <EditText
                 android:id="@+id/treeNameEdit"
@@ -144,7 +146,8 @@
                 android:layout_weight="1"
                 android:hint="tree name"
                 android:inputType="textNoSuggestions"
-                android:singleLine="true" />
+                android:singleLine="true"
+                android:visibility="visible" />
 
             <TextView
                 android:id="@+id/treeDescribeText"
@@ -154,16 +157,59 @@
                 android:layout_weight="1"
                 android:singleLine="false"
                 android:text="Add small description"
-                android:textAppearance="?android:attr/textAppearanceLarge" />
+                android:textAppearance="?android:attr/textAppearanceLarge"
+                android:visibility="visible" />
 
             <EditText
                 android:id="@+id/treeDescribeEdit"
                 android:layout_width="272dp"
                 android:layout_height="22dp"
                 android:layout_weight="1"
-                android:hint="tree name"
+                android:hint="small descritipn"
                 android:inputType="textNoSuggestions"
-                android:singleLine="true" />
+                android:singleLine="true"
+                android:visibility="visible" />
+
+            <RadioGroup
+                android:id="@+id/treeCondition"
+                android:layout_width="match_parent"
+                android:layout_height="47dp"
+                android:layout_weight="1"
+                android:visibility="visible">
+
+                <RadioButton
+                    android:id="@+id/atumn"
+                    android:layout_width="match_parent"
+                    android:layout_height="23dp"
+                    android:background="#fff"
+                    android:text="Brrrrrr"
+                    android:visibility="visible" />
+
+                <RadioButton
+                    android:id="@+id/winter"
+                    android:layout_width="match_parent"
+                    android:layout_height="17dp"
+                    android:background="#ff2"
+                    android:text="Blooming"
+                    android:visibility="visible" />
+
+                <RadioButton
+                    android:id="@+id/spring"
+                    android:layout_width="match_parent"
+                    android:layout_height="14dp"
+                    android:background="#21D528"
+                    android:text="Blossom"
+                    android:visibility="visible" />
+
+                <RadioButton
+                    android:id="@+id/summer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="#F40C0C"
+                    android:text="The Tree Is Ripe"
+                    android:visibility="visible"
+                    app:buttonTint="#FBF6F6" />
+            </RadioGroup>
         </LinearLayout>
 
     </RelativeLayout>
