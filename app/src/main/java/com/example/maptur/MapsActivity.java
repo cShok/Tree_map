@@ -371,6 +371,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
  public void addTree(LatLng latLng)  {
 
         updateUI();
+
         MarkerOptions newMarker = new MarkerOptions();
         // Setting the position for the marker
         newMarker.position(latLng);
@@ -380,10 +381,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Placing a marker on the touched position
         mMap.addMarker(newMarker);
-
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        // after validation, add marker to the db
-    
+
         // need to implement clusters
         db.collection("markers_plus").add(newMarker);
     }
@@ -443,6 +442,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
                 treeCondSts = 0;
                 treeCondSts = i % 4;
+
                 Log.i("tree cond", "this is i %i"  + treeCondSts);
 
             }
