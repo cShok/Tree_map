@@ -1,6 +1,12 @@
 package com.example.maptur;
 
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -12,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentActivity;
@@ -41,6 +48,9 @@ import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -147,10 +157,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 drawerLayout.closeDrawer(GravityCompat.START);
                 switch (id)
                 {
-                    case R.id.synch:
-                        Toast.makeText(MapsActivity.this, "Synch is Clicked",Toast.LENGTH_SHORT).show();break;
-                    case R.id.nav_login:
-                        Toast.makeText(MapsActivity.this, "Login is Clicked",Toast.LENGTH_SHORT).show();break;
+                    case R.id.nav_all_trees:
+                        Toast.makeText(getApplicationContext(), "All trees", Toast.LENGTH_SHORT).show();
+                        presentMarkers();
+                        break;
+                    case R.id.nav_my_trees:
+                        Toast.makeText(MapsActivity.this, "Showing your trees",Toast.LENGTH_SHORT).show();
+                        removeMarkers();
+                        myMarkers();
+                        break;
+                    case R.id.fruit_now:
+                        Toast.makeText(MapsActivity.this, "Fruit now",Toast.LENGTH_SHORT).show();
+                        break;
                     default:
                         return true;
                 }
@@ -159,6 +177,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
         updateUI();
         presentMarkers();
+    }
+
+    private void removeMarkers() {
+        //remove all markers
+        mMap.clear();
     }
 
     private void updateUI() {
@@ -199,6 +222,33 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 });
 
     }
+
+    //function that will present markers based on a string passed to the function
+    //private void presentMarkers(String search){
+    private void myMarkers(){
+        // pull all items in collection "markers" from firestore db
+        db.collection("markers")
+                //.whereEqualTo("title", search)
+
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            // if lat is greater than 35.45
+                            if (document.getDouble("position.latitude") > 31.5) {
+                                LatLng marker = new LatLng(document.getDouble("position.latitude"), document.getDouble("position.longitude"));
+                                mMap.addMarker(new MarkerOptions().position(marker).title(document.getString("title")));
+                            }
+                        }
+                    } else {
+                        Log.w("TAG", "Error getting documents.", task.getException());
+                    }
+                });
+    }
+
+
+
+
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -278,12 +328,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
+        mMap.setMyLocationEnabled(true);
+
 
         LatLng Jerusalem = new LatLng(31.7683, 35.2137);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(Jerusalem));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
         mMap.setOnMarkerClickListener(this::onMarkerClick); //marker pushed
         mMap.setOnMapLongClickListener(this::onMapLongClick);//long push
+        mMap.getUiSettings().setMyLocationButtonEnabled(true);
     }
 
     public void onMapLongClick(LatLng latLng) {
@@ -338,14 +391,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Check if a click count was set, then display the click count.
         if (clickCount != null) {
-            clickCount =(Integer) ((int)clickCount + 1);
+            clickCount = (Integer) ((int) clickCount + 1);
             marker.setTag(clickCount);
             Toast.makeText(this,
                     marker.getTitle() +
                             " has been clicked " + clickCount + " times.",
                     Toast.LENGTH_SHORT).show();
         }
-        Log.i("marker count **" , "**********" + clickCount);
+        Log.i("marker count **", "**********" + clickCount);
         // Return false to indicate that we have not consumed the event and that we wish
         // for the default behavior to occur (which is for the camera to move such that the
         // marker is centered and for the marker's info window to open, if it has one).
@@ -354,11 +407,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void addTree(LatLng latLng){
         MarkerOptions newMarker = new MarkerOptions();
+
         // Setting the position for the marker
         newMarker.position(latLng);
         // Setting the title for the marker.
         // This will be displayed on taping the marker
         newMarker.title(latLng.latitude + " : " + latLng.longitude);
+        // add property to the marker with the user name and the date (hh:mm, dd/mm/yy)
+        newMarker.snippet("added by " + mAuth.getCurrentUser().getDisplayName() + ", " + new SimpleDateFormat("HH:mm, dd/MM/yyyy").format(new Date()));
+
+
 
         // Placing a marker on the touched position
         mMap.addMarker(newMarker);
@@ -367,6 +425,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // need to implement clusters
         db.collection("markers").add(newMarker);
+
     }
 
 }

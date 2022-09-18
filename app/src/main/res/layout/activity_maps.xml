@@ -17,15 +17,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <com.google.android.material.appbar.MaterialToolbar
+    <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/topAppBar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:title="Fruit Tree map"
             app:navigationIcon="@drawable/ic_baseline_menu_24"
             android:background="@color/white"
-            app:titleTextColor="@color/black"
-            />
+            app:titleTextColor="@color/black" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -40,9 +39,7 @@
                 android:id="@+id/NotSigned"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:visibility="invisible"
-
-                />
+                android:visibility="invisible" />
 
 
             <Button
@@ -65,10 +62,7 @@
                 android:padding="10dp"
                 android:paddingLeft="50dp"
                 android:text="no"
-                android:visibility="invisible"
-
-                />
-
+                android:visibility="invisible" />
 
             <TextView
                 android:id="@+id/NotSignedText"
@@ -82,9 +76,7 @@
                 android:textColor="@color/cardview_dark_background"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:visibility="invisible"
-
-                />
+                android:visibility="invisible" />
 
             <!--    logout-->
             <Button
@@ -95,11 +87,10 @@
                 android:layout_marginTop="60dp"
                 android:layout_marginEnd="50dp"
                 android:layout_marginBottom="16dp"
-                android:text="@string/logout"
-                android:visibility="invisible"
                 android:background="@color/white"
+                android:text="@string/logout"
                 android:textColor="@color/black"
-                />
+                android:visibility="invisible" />
 
             <!--    sign in-->
             <com.google.android.gms.common.SignInButton
@@ -112,7 +103,20 @@
                 android:layout_marginBottom="16dp" />
 
         </fragment>
+
+        <ImageView
+            android:id="@+id/ic_location"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginRight="8dp"
+            android:layout_marginBottom="18dp"
+            android:background="@color/white"
+            android:src="@drawable/ic_baseline_location_searching_24" />
+
     </RelativeLayout>
+
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navigation_view"
         android:layout_width="wrap_content"
