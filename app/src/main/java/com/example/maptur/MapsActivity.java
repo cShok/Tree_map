@@ -3,10 +3,16 @@ package com.example.maptur;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -57,6 +63,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private TextView notSignedText;
     private Button yes;
     private Button no;
+
+    private LinearLayout addTreeLinear;
+    private TextView addTreeText, addDesText;
+    private EditText addTreeEdit,addDesEdit ;
+    private Button exitTreeForm, confirmTreeForm;
+    private RadioGroup treeCond;
+    Editable name, treeDes;
+    int treeCondSts, formSts;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -164,7 +179,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void updateUI() {
         // Initialize google sign in account
         GoogleSignInAccount googleSignInAccount=GoogleSignIn.getLastSignedInAccount(MapsActivity.this);
-
+        addTreeLinear = findViewById(R.id.form);
+        addTreeLinear.setVisibility(View.INVISIBLE);
         // Check condition
         if(googleSignInAccount!=null)
         {
@@ -302,6 +318,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         //button do you want to add tree?
+        //#TODO any other touch close them both?
+
         yes = (Button) findViewById(R.id.wantToAddTreeY);
         no = (Button) findViewById(R.id.wantToAddTreeN);
 
@@ -313,9 +331,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 public void onClick(View view) {
                     yes.setVisibility(View.INVISIBLE);
                     no.setVisibility(View.INVISIBLE);
-
-                    addTree(latLng);
-
+                    addTreeForm(latLng);
                 }
             });
         no.setOnClickListener(new View.OnClickListener() {
@@ -352,21 +368,98 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return false;
     }
 
-    public void addTree(LatLng latLng){
+ public void addTree(LatLng latLng)  {
+
+        updateUI();
+
         MarkerOptions newMarker = new MarkerOptions();
         // Setting the position for the marker
         newMarker.position(latLng);
         // Setting the title for the marker.
         // This will be displayed on taping the marker
-        newMarker.title(latLng.latitude + " : " + latLng.longitude);
+        newMarker.title(name.toString());
 
         // Placing a marker on the touched position
         mMap.addMarker(newMarker);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-        // after validation, add marker to the db
 
         // need to implement clusters
-        db.collection("markers").add(newMarker);
+        db.collection("markers_plus").add(newMarker);
     }
 
+    public void addTreeForm(LatLng latLng)  {
+
+
+        addTreeLinear = findViewById(R.id.form);
+        addTreeText = findViewById(R.id.treeNameText);
+        addTreeEdit = findViewById(R.id.treeNameEdit);
+        addDesText = findViewById(R.id.treeDescribeText);
+        addDesEdit = findViewById(R.id.treeDescribeEdit);
+        treeCond = findViewById(R.id.treeCondition);
+        exitTreeForm = findViewById(R.id.exitForm);
+        confirmTreeForm = findViewById(R.id.confirmTree);
+
+        addTreeLinear.setVisibility(View.VISIBLE);
+
+        addTreeEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+                name = addTreeEdit.getText();
+
+            }
+        });
+
+        addDesEdit.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                treeDes = addDesEdit.getText();
+
+            }
+        });
+        treeCond.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(RadioGroup radioGroup, int i) {
+                treeCondSts = 0;
+                treeCondSts = i % 4;
+
+                Log.i("tree cond", "this is i %i"  + treeCondSts);
+
+            }
+        });
+
+
+        exitTreeForm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                updateUI();
+            }
+        });
+        confirmTreeForm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addTree(latLng);
+            }
+        });
+    }
 }
