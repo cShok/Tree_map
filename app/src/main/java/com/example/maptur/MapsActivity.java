@@ -67,7 +67,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LinearLayout addTreeLinear;
     private TextView addTreeText, addDesText;
     private EditText addTreeEdit,addDesEdit ;
-
+    private Button exitTreeForm, confirmTreeForm;
     private RadioGroup treeCond;
     Editable name, treeDes;
     int treeCondSts, formSts;
@@ -377,14 +377,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Setting the title for the marker.
         // This will be displayed on taping the marker
         newMarker.title(name.toString());
-//
+
         // Placing a marker on the touched position
         mMap.addMarker(newMarker);
+
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
         // after validation, add marker to the db
-
+    
         // need to implement clusters
-        db.collection("markers").add(newMarker);
+        db.collection("markers_plus").add(newMarker);
     }
 
     public void addTreeForm(LatLng latLng)  {
@@ -396,6 +397,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         addDesText = findViewById(R.id.treeDescribeText);
         addDesEdit = findViewById(R.id.treeDescribeEdit);
         treeCond = findViewById(R.id.treeCondition);
+        exitTreeForm = findViewById(R.id.exitForm);
+        confirmTreeForm = findViewById(R.id.confirmTree);
 
         addTreeLinear.setVisibility(View.VISIBLE);
 
@@ -438,13 +441,25 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         treeCond.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
-                treeCondSts = i;
-                addTree(latLng);
+                treeCondSts = 0;
+                treeCondSts = i % 4;
+                Log.i("tree cond", "this is i %i"  + treeCondSts);
+
             }
         });
 
 
-
-
+        exitTreeForm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                updateUI();
+            }
+        });
+        confirmTreeForm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addTree(latLng);
+            }
+        });
     }
 }
