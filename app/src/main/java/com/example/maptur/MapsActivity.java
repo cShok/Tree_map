@@ -11,7 +11,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,7 +45,18 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firestore.v1.WriteResult;
+
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -71,7 +81,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private RadioGroup treeCond;
     Editable name, treeDes;
     int treeCondSts, formSts;
-
+    private Map<String,Object> markersMap = new HashMap<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -370,21 +380,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
  public void addTree(LatLng latLng)  {
 
+        Double c1, c2;
         updateUI();
 
         MarkerOptions newMarker = new MarkerOptions();
+        ArrayList<Object> newData = new ArrayList<>();
         // Setting the position for the marker
         newMarker.position(latLng);
-        // Setting the title for the marker.
-        // This will be displayed on taping the marker
         newMarker.title(name.toString());
 
-        // Placing a marker on the touched position
+        newData.add( treeDes.toString());
+        newData.add( treeCondSts);
+        newData.add( googleSignInClient.toString());
+        newData.add( newMarker);
+
         mMap.addMarker(newMarker);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        c1 = latLng.latitude; c2 = latLng.longitude;
+        markersMap.put( c1.toString()+ "+" +c2.toString() , newData);
 
-        // need to implement clusters
-        db.collection("markers_plus").add(newMarker);
+        db.collection("marker").add(markersMap);
+
+        markersMap.clear();
     }
 
     public void addTreeForm(LatLng latLng)  {
@@ -442,8 +459,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
                 treeCondSts = 0;
                 treeCondSts = i % 4;
-
-                Log.i("tree cond", "this is i %i"  + treeCondSts);
 
             }
         });
