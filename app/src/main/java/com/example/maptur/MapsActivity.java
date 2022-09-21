@@ -43,19 +43,15 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firestore.v1.WriteResult;
+import com.google.firebase.firestore.QuerySnapshot;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -211,7 +207,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void presentMarkers(){
         // pull all items in collection "markers" from firestore db
-        db.collection("markers")
+        db.collection("marker")
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -359,19 +355,39 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public boolean onMarkerClick(final Marker marker) {
 
-        // Retrieve the data from the marker.
-        Integer clickCount = (Integer) marker.getTag();
+//         Retrieve the data from the marker.
+        Double c1, c2;
+        c1 = marker.getPosition().latitude;
+        c2= marker.getPosition().longitude;
+        ArrayList<Object> treeData = new ArrayList<>();
+        Task<QuerySnapshot> docRef = db.collection("trees")
+        .get().addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                if (Objects.equals(marker.getTitle(), document.getId())) {
+                                        ArrayList<Object> b = (ArrayList<Object>) document.getData().values().toArray()[0];
 
-        // Check if a click count was set, then display the click count.
-        if (clickCount != null) {
-            clickCount =(Integer) ((int)clickCount + 1);
-            marker.setTag(clickCount);
-            Toast.makeText(this,
-                    marker.getTitle() +
-                            " has been clicked " + clickCount + " times.",
-                    Toast.LENGTH_SHORT).show();
-        }
-        Log.i("marker count **" , "**********" + clickCount);
+                                        Log.i("^^^^^^^^^",   b.get(0) + "\n");
+                                    Toast.makeText(this,
+                                            marker.getTitle(),
+                                            Toast.LENGTH_SHORT).show();
+                                    break;
+
+                            } else{
+
+
+                                Log.w("TAG", "Error getting documents." + document.getId(), task.getException());
+                            }
+
+
+                            }}});
+//        // Check if a click count was set, then display the click count.
+//        if (clickCount != null) {
+//            clickCount =(Integer) ((int)clickCount + 1);
+
+
+
+//        Log.i("marker count **" , "**********" + clickCount);
         // Return false to indicate that we have not consumed the event and that we wish
         // for the default behavior to occur (which is for the camera to move such that the
         // marker is centered and for the marker's info window to open, if it has one).
@@ -380,28 +396,40 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
  public void addTree(LatLng latLng)  {
 
-        Double c1, c2;
+
         updateUI();
 
         MarkerOptions newMarker = new MarkerOptions();
-        ArrayList<Object> newData = new ArrayList<>();
-        // Setting the position for the marker
-        newMarker.position(latLng);
-        newMarker.title(name.toString());
+        ArrayList<Object> treeData = new ArrayList<>();
+        Map<String, String> descriptionMap = new HashMap<>();
+        Map<String, Object> treeMap = new HashMap<>();
 
-        newData.add( treeDes.toString());
-        newData.add( treeCondSts);
-        newData.add( googleSignInClient.toString());
-        newData.add( newMarker);
+        newMarker.position(latLng);
 
         mMap.addMarker(newMarker);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+
+        descriptionMap.put(googleSignInClient.toString(),  treeDes.toString());
+        treeData.add(latLng);
+        treeData.add(treeCondSts);
+        treeData.add(descriptionMap);
+        treeData.add(0); //rating
+        Double c1,c2;
         c1 = latLng.latitude; c2 = latLng.longitude;
-        markersMap.put( c1.toString()+ "+" +c2.toString() , newData);
+        treeMap.put( c1.toString() + "+" + c2.toString() , treeData);
+         Task<DocumentReference> h = db.collection("trees").add(treeMap);
+         h.addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+             @Override
+             public void onComplete(@NonNull Task<DocumentReference> task) {
+                 newMarker.title(h.getResult().getId());
+                 db.collection("marker").add(newMarker);
+             }
+         });
 
-        db.collection("marker").add(markersMap);
 
-        markersMap.clear();
+
+
+
     }
 
     public void addTreeForm(LatLng latLng)  {
@@ -457,10 +485,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         treeCond.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
-                treeCondSts = 0;
-                treeCondSts = i % 4;
+                    switch(i) {
+                        case R.id.winter:
+                            treeCondSts = 0;
+                            break;
+                        case R.id.spring:
+                            treeCondSts = 1;
+                            break;
 
-            }
+                        case R.id.summer:
+                            treeCondSts = 2;
+                            break;
+                        case R.id.atumn:
+                            treeCondSts = 3;
+                            break;
+                    }
+                }
+
         });
 
 
