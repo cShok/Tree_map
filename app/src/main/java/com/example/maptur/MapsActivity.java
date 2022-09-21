@@ -365,7 +365,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 if (Objects.equals(marker.getTitle(), document.getId())) {
-                                        ArrayList<Object> b = (ArrayList<Object>) document.getData().values().toArray()[0];
+                                        ArrayList<Object> b = (ArrayList<Object>) document.getData().values().toArray()[0] ;
 
                                         Log.i("^^^^^^^^^",   b.get(0) + "\n");
                                     Toast.makeText(this,
