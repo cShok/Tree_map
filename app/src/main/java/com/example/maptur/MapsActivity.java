@@ -76,7 +76,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Button exitTreeForm, confirmTreeForm;
     private RadioGroup treeCond;
     Editable name, treeDes;
-    int treeCondSts, formSts;
+    int treeCondSts, formSts, snip;
     private Map<String,Object> markersMap = new HashMap<>();
 
     @Override
@@ -356,41 +356,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public boolean onMarkerClick(final Marker marker) {
 
 //         Retrieve the data from the marker.
-        Double c1, c2;
-        c1 = marker.getPosition().latitude;
-        c2= marker.getPosition().longitude;
+
+        Log.i("#######", marker.toString() );
         ArrayList<Object> treeData = new ArrayList<>();
         Task<QuerySnapshot> docRef = db.collection("trees")
         .get().addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
+                                Log.i("@@@@@", marker.getSnippet()+ "  " + document.getId());
                                 if (Objects.equals(marker.getTitle(), document.getId())) {
                                         ArrayList<Object> b = (ArrayList<Object>) document.getData().values().toArray()[0] ;
 
-                                        Log.i("^^^^^^^^^",   b.get(0) + "\n");
-                                    Toast.makeText(this,
-                                            marker.getTitle(),
-                                            Toast.LENGTH_SHORT).show();
+                                        Log.i("^^^^^^^^^",   b.get(0) + b.get(1).toString() + "\n");
+//                                    Toast.makeText(this,
+//                                            b.get(1).toString(),
+//                                            Toast.LENGTH_SHORT).show();
                                     break;
 
                             } else{
 
 
-                                Log.w("TAG", "Error getting documents." + document.getId(), task.getException());
+                                Log.w("TAG", "Error getting documents." , task.getException());
                             }
 
 
                             }}});
-//        // Check if a click count was set, then display the click count.
-//        if (clickCount != null) {
-//            clickCount =(Integer) ((int)clickCount + 1);
-
-
-
-//        Log.i("marker count **" , "**********" + clickCount);
-        // Return false to indicate that we have not consumed the event and that we wish
-        // for the default behavior to occur (which is for the camera to move such that the
-        // marker is centered and for the marker's info window to open, if it has one).
         return false;
     }
 
@@ -406,14 +396,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         newMarker.position(latLng);
 
-        mMap.addMarker(newMarker);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+
 
         descriptionMap.put(googleSignInClient.toString(),  treeDes.toString());
-        treeData.add(latLng);
-        treeData.add(treeCondSts);
-        treeData.add(descriptionMap);
-        treeData.add(0); //rating
+        treeData.add(name.toString());//0
+        treeData.add(treeCondSts);//1
+        treeData.add(descriptionMap);//2
+        treeData.add(0); //rating//3
         Double c1,c2;
         c1 = latLng.latitude; c2 = latLng.longitude;
         treeMap.put( c1.toString() + "+" + c2.toString() , treeData);
@@ -421,8 +410,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
          h.addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
              @Override
              public void onComplete(@NonNull Task<DocumentReference> task) {
+
                  newMarker.title(h.getResult().getId());
+                 newMarker.snippet(h.getResult().getId());
                  db.collection("marker").add(newMarker);
+                 presentMarkers();
              }
          });
 
