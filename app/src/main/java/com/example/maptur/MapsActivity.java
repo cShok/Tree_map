@@ -53,8 +53,15 @@ import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -71,16 +78,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private TextView notSignedText;
     private Button yes;
     private Button no;
+    private Button moreDetails;
 
-    private LinearLayout addTreeLinear;
+    private LinearLayout addTreeLinear, updateLinear;
     private TextView addTreeText, addDesText;
     private EditText addTreeEdit,addDesEdit ;
-    private Button exitTreeForm, confirmTreeForm;
+    private Button exitTreeForm, confirmTreeForm, exitDetails;
     private RadioGroup treeCond;
     Editable name, treeDes;
-    int treeCondSts, formSts;
+
+    int treeCondSts, formSts, snip;
+    private Map<String,Object> markersMap = new HashMap<>();
+    private ArrayList<Object> gTreeData = new ArrayList<>();
+    private String mSnippet;
+
+   
 
     private View locationButton;
+
 
 
 
@@ -226,7 +241,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void presentMarkers(){
         // pull all items in collection "markers" from firestore db
-        db.collection("markers")
+        db.collection("marker")
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
@@ -424,44 +439,130 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    //forigen key of trees
+    private Task<QuerySnapshot> getTreeData(final Marker marker){
+        return db.collection("trees")
+                .get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            if (Objects.equals(mSnippet, document.getId())) {
+                                gTreeData = (ArrayList<Object>) document.getData().values().toArray()[0] ;
+                                break;
+                            }
+
+                        }}
+                    else{
+                        Log.w("TAG", "Error getting documents." , task.getException());
+                    }});
+    }
+    private Task<QuerySnapshot> getMarkerSnippet(final Marker marker){
+
+        return db.collection("marker").get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                for (QueryDocumentSnapshot document : task.getResult()) {
+
+                    if (marker.getPosition().latitude ==  document.getDouble("position.latitude") &&
+                            marker.getPosition().longitude==  document.getDouble("position.longitude")) {
+                        String cur = (String) document.get("snippet");
+                        Log.i("treeid", "cur " + cur + "  " + document.getId());
+
+                        mSnippet = cur;
+                        break;
+
+                    }
+                }}
+            else{
+                Log.w("TAG", "Error getting documents." , task.getException());
+            }
+        });
+    }
     public boolean onMarkerClick(final Marker marker) {
 
-        // Retrieve the data from the marker.
-        Integer clickCount = (Integer) marker.getTag();
+//         Retrieve the data from the marker.
 
-        // Check if a click count was set, then display the click count.
-        if (clickCount != null) {
-            clickCount =(Integer) ((int)clickCount + 1);
-            marker.setTag(clickCount);
-            Toast.makeText(this,
-                    marker.getTitle() +
-                            " has been clicked " + clickCount + " times.",
-                    Toast.LENGTH_SHORT).show();
-        }
-        Log.i("marker count **" , "**********" + clickCount);
-        // Return false to indicate that we have not consumed the event and that we wish
-        // for the default behavior to occur (which is for the camera to move such that the
-        // marker is centered and for the marker's info window to open, if it has one).
+
+
+        Task<QuerySnapshot> curMarker = getMarkerSnippet(marker);
+        Task<QuerySnapshot> curTree  = getTreeData(marker);
+        moreDetails = findViewById(R.id.more_details);
+        moreDetails.setVisibility(View.VISIBLE);
+
+        updateLinear = findViewById(R.id.details);
+        exitDetails = findViewById(R.id.exitDetails);
+
+        curMarker.addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                Log.i("marker listner", curMarker.getResult().toString());
+            }
+        });
+        curTree.addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+//
+//                for( DocumentSnapshot onm :  curTree.getResult().getDocuments()){
+//                       onm.getReference().u;
+//                }
+//                Log.i("tree listner", ttt.getId());
+                Log.i("tree listner", curTree.getResult().toString());
+                Log.i("tree listner", curTree.getResult().getClass().toString());
+
+            }
+        });
+//
+//// ...
+//        WriteResult result = future.get();
+//        System.out.println("Write result: " + result);
+
+
+        exitDetails.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                updateLinear.setVisibility(View.INVISIBLE);
+            }
+        });
+        moreDetails.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                updateLinear.setVisibility(View.VISIBLE);
+            }
+        });
+//        new Handler().postDelayed(() ->  moreDetails.setVisibility(View.INVISIBLE), 3000);
+
         return false;
     }
 
  public void addTree(LatLng latLng)  {
 
+
         updateUI();
 
         MarkerOptions newMarker = new MarkerOptions();
-        // Setting the position for the marker
+        ArrayList<Object> treeData = new ArrayList<>();
+        Map<String, String> descriptionMap = new HashMap<>();
+        Map<String, Object> treeMap = new HashMap<>();
+
         newMarker.position(latLng);
-        // Setting the title for the marker.
-        // This will be displayed on taping the marker
-        newMarker.title(name.toString());
 
-        // Placing a marker on the touched position
-        mMap.addMarker(newMarker);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+        descriptionMap.put(googleSignInClient.toString(),  treeDes.toString());
+        treeData.add(name.toString());//0
+        treeData.add(treeCondSts);//1
+        treeData.add(descriptionMap);//2
+        treeData.add(0); //rating//3
+        Double c1,c2;
+        c1 = latLng.latitude; c2 = latLng.longitude;
+        treeMap.put( c1.toString() + "+" + c2.toString() , treeData);
+         Task<DocumentReference> h = db.collection("trees").add(treeMap);
+         h.addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+             @Override
+             public void onComplete(@NonNull Task<DocumentReference> task) {
 
-        // need to implement clusters
-        db.collection("markers_plus").add(newMarker);
+                 newMarker.title(name.toString());
+                 newMarker.snippet(h.getResult().getId());
+                 db.collection("marker").add(newMarker);
+                 presentMarkers();
+             }
+         });
     }
 
     public void addTreeForm(LatLng latLng)  {
@@ -517,12 +618,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         treeCond.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
-                treeCondSts = 0;
-                treeCondSts = i % 4;
+                    switch(i) {
+                        case R.id.winter:
+                            treeCondSts = 0;
+                            break;
+                        case R.id.spring:
+                            treeCondSts = 1;
+                            break;
 
-                Log.i("tree cond", "this is i %i"  + treeCondSts);
+                        case R.id.summer:
+                            treeCondSts = 2;
+                            break;
+                        case R.id.atumn:
+                            treeCondSts = 3;
+                            break;
+                    }
+                }
 
-            }
         });
 
 
