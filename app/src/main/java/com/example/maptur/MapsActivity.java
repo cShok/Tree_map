@@ -44,6 +44,7 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -52,7 +53,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -357,8 +357,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     //forigen key of trees
-    private void getTreeData(final Marker marker){
-        Task<QuerySnapshot> docRef = db.collection("trees")
+    private Task<QuerySnapshot> getTreeData(final Marker marker){
+        return db.collection("trees")
                 .get().addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         for (QueryDocumentSnapshot document : task.getResult()) {
@@ -372,9 +372,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         Log.w("TAG", "Error getting documents." , task.getException());
                     }});
     }
-    private void getMarkerSnippet(final Marker marker){
+    private Task<QuerySnapshot> getMarkerSnippet(final Marker marker){
 
-        Task<QuerySnapshot> docres = db.collection("marker").get().addOnCompleteListener(task -> {
+        return db.collection("marker").get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 for (QueryDocumentSnapshot document : task.getResult()) {
 
@@ -399,13 +399,39 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
-        getMarkerSnippet(marker);
-        getTreeData(marker);
+        Task<QuerySnapshot> curMarker = getMarkerSnippet(marker);
+        Task<QuerySnapshot> curTree  = getTreeData(marker);
         moreDetails = findViewById(R.id.more_details);
         moreDetails.setVisibility(View.VISIBLE);
 
         updateLinear = findViewById(R.id.details);
         exitDetails = findViewById(R.id.exitDetails);
+
+        curMarker.addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                Log.i("marker listner", curMarker.getResult().toString());
+            }
+        });
+        curTree.addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+//
+//                for( DocumentSnapshot onm :  curTree.getResult().getDocuments()){
+//                       onm.getReference().u;
+//                }
+//                Log.i("tree listner", ttt.getId());
+                Log.i("tree listner", curTree.getResult().toString());
+                Log.i("tree listner", curTree.getResult().getClass().toString());
+
+            }
+        });
+//
+//// ...
+//        WriteResult result = future.get();
+//        System.out.println("Write result: " + result);
+
+
         exitDetails.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
