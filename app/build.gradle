@@ -15,6 +15,8 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJ  UnitRunner"
+
+        multiDexEnabled true
     }
 
     buildTypes {
@@ -30,10 +32,13 @@ android {
     buildFeatures {
         viewBinding true
     }
+    packagingOptions {
+        exclude 'androidsupportmultidexversion.txt'
+    }
 }
 
 dependencies {
-
+    implementation 'com.android.support:multidex:1.0.3'
     implementation 'androidx.appcompat:appcompat:1.5.0'
     implementation 'com.google.android.gms:play-services-location:20.0.0'
     implementation 'com.google.android.material:material:1.6.1'

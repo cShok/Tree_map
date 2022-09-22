@@ -14,12 +14,22 @@ import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import android.Manifest;
+import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
+import androidx.core.app.ActivityCompat;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentActivity;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import com.example.maptur.databinding.ActivityMapsBinding;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -47,7 +57,6 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -77,10 +86,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Button exitTreeForm, confirmTreeForm, exitDetails;
     private RadioGroup treeCond;
     Editable name, treeDes;
+
     int treeCondSts, formSts, snip;
     private Map<String,Object> markersMap = new HashMap<>();
     private ArrayList<Object> gTreeData = new ArrayList<>();
     private String mSnippet;
+
+   
+
+    private View locationButton;
+
+
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -171,10 +189,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 drawerLayout.closeDrawer(GravityCompat.START);
                 switch (id)
                 {
-                    case R.id.synch:
-                        Toast.makeText(MapsActivity.this, "Synch is Clicked",Toast.LENGTH_SHORT).show();break;
-                    case R.id.nav_login:
-                        Toast.makeText(MapsActivity.this, "Login is Clicked",Toast.LENGTH_SHORT).show();break;
+                    case R.id.nav_all_trees:
+                        Toast.makeText(getApplicationContext(), "All trees", Toast.LENGTH_SHORT).show();
+                        presentMarkers();
+                        break;
+                    case R.id.nav_my_trees:
+                        Toast.makeText(MapsActivity.this, "Showing your trees",Toast.LENGTH_SHORT).show();
+                        removeMarkers();
+                        myMarkers();
+                        break;
+                    case R.id.fruit_now:
+                        Toast.makeText(MapsActivity.this, "Fruit now",Toast.LENGTH_SHORT).show();
+                        break;
                     default:
                         return true;
                 }
@@ -183,6 +209,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
         updateUI();
         presentMarkers();
+    }
+
+    private void removeMarkers() {
+        //remove all markers
+        mMap.clear();
     }
 
     private void updateUI() {
@@ -223,6 +254,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                 });
 
+    }
+
+    //function that will present markers based on a string passed to the function
+    //private void presentMarkers(String search){
+    private void myMarkers(){
+        // pull all items in collection "markers" from firestore db
+        db.collection("markers")
+                //.whereEqualTo("title", search)
+
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            // if lat is greater than 35.45
+                            if (document.getDouble("position.latitude") > 31.5) {
+                                LatLng marker = new LatLng(document.getDouble("position.latitude"), document.getDouble("position.longitude"));
+                                mMap.addMarker(new MarkerOptions().position(marker).title(document.getString("title")));
+                            }
+                        }
+                    } else {
+                        Log.w("TAG", "Error getting documents.", task.getException());
+                    }
+                });
     }
 
     @Override
@@ -304,12 +358,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
 
+        //location permission - if not granted, ask for it
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        }
+
         LatLng Jerusalem = new LatLng(31.7683, 35.2137);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(Jerusalem));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
         mMap.setOnMarkerClickListener(this::onMarkerClick); //marker pushed
         mMap.setOnMapLongClickListener(this::onMapLongClick);//long push
+        //mMap.getUiSettings().setMyLocationButtonEnabled(true);
+
+        // get your maps fragment
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+        // Extract My Location View from maps fragment
+        locationButton = mapFragment.getView().findViewById(0x2);
+        // Change the visibility of my location button
+        if(locationButton != null)
+            locationButton.setVisibility(View.GONE);
+
+        findViewById(R.id.ic_location).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mMap != null)
+                {
+                    if(locationButton != null)
+                        locationButton.callOnClick();
+
+                }
+            }
+        });
     }
+
 
     public void onMapLongClick(LatLng latLng) {
         /* need to check if sign in, if not, do nothing @eKurer*/

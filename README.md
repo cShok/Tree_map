@@ -8,10 +8,6 @@ This the final assignment in the course [Advanced Java Programing Workshop](http
 
 Java, FireBase, Google Maps API
 
-#### TODO
-
-- add 'center to my location' button
-- move login button to drawer
 
 #### To run locally:
 - add `MAPS_API_KEY` to `local.properties`
