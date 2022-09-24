@@ -177,9 +177,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 drawerLayout.openDrawer(GravityCompat.START);
-
             }
         });
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
@@ -226,10 +224,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         if(googleSignInAccount!=null)
         {
             signedIn = true;
+
             // When google sign in account is not null
             // Set visibility
             btLogout.setVisibility(View.VISIBLE);
             btSignIn.setVisibility(View.GONE);
+
+            // change text in nav bar to user's name
+            NavigationView navigationView = findViewById(R.id.navigation_view);
+            View headerView = navigationView.getHeaderView(0);
+            TextView navUsername = (TextView) headerView.findViewById(R.id.name);
+            navUsername.setText(googleSignInAccount.getDisplayName());
+            // change text in nav bar to user's email
+            TextView navEmail = (TextView) headerView.findViewById(R.id.username);
+            navEmail.setText(googleSignInAccount.getEmail());
+
         }
         else
         {

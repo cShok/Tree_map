@@ -17,15 +17,15 @@
         android:title="Fruit now" />
 
     <item android:title="">
-        <menu>
-            <item
-                android:icon="@drawable/ic_baseline_login_24"
-                android:title="Login" />
-            // contact us
-            <item
-                android:icon="@drawable/ic_baseline_contact_support_24"
-                android:title="Contact Us" />
-        </menu>
+<!--        <menu>-->
+<!--            <item-->
+<!--                android:icon="@drawable/ic_baseline_login_24"-->
+<!--                android:title="Login" />-->
+<!--            // contact us-->
+<!--            <item-->
+<!--                android:icon="@drawable/ic_baseline_contact_support_24"-->
+<!--                android:title="Contact Us" />-->
+<!--        </menu>-->
     </item>
 
 
