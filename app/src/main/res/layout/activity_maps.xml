@@ -23,7 +23,8 @@
             android:name="com.google.android.gms.maps.SupportMapFragment"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            tools:context=".MapsActivity">
+            tools:context=".MapsActivity"
+            tools:visibility="invisible">
 
             <Button
                 android:id="@+id/NotSigned"
@@ -93,13 +94,13 @@
                 android:id="@+id/more_details"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_gravity="bottom|center"
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="60dp"
                 android:layout_marginEnd="50dp"
                 android:layout_marginBottom="16dp"
                 android:background="@color/white"
                 android:clickable="false"
-                android:layout_gravity="bottom"
                 android:text="More Details"
                 android:textColor="@color/black"
                 android:visibility="invisible" />
@@ -136,44 +137,114 @@
             app:title="Fruit Tree map"
             app:titleTextColor="@color/black" />
 
-        <LinearLayout
+        <TableLayout
             android:id="@+id/details"
-            android:layout_width="match_parent"
-            android:layout_height="662dp"
+            android:layout_width="280dp"
+            android:layout_height="240dp"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
-            android:layout_marginStart="0dp"
-            android:layout_marginTop="52dp"
-            android:layout_marginEnd="0dp"
-            android:layout_marginBottom="17dp"
+            android:layout_marginStart="58dp"
+            android:layout_marginTop="81dp"
+            android:layout_marginEnd="73dp"
+            android:layout_marginBottom="268dp"
             android:background="#36A2D3"
             android:gravity="center"
             android:orientation="vertical"
             android:visibility="invisible">
 
-            <Button
-                android:id="@+id/exitDetails"
+
+            <TableRow
+                android:id="@+id/ratingBar"
                 android:layout_width="match_parent"
-                android:layout_height="7dp"
-                android:layout_weight="1"
-                android:text="Exit"
-                android:visibility="visible" />
+                android:layout_height="45dp">
 
-            <TextView
-                android:id="@+id/treeDescriptions"
+                <RatingBar
+                    android:id="@+id/treeRate"
+                    android:layout_width="match_parent"
+                    android:layout_height="32dp"
+                    android:layout_weight="1"
+                    android:numStars="4" />
+
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/treeDeatilsRaw"
                 android:layout_width="match_parent"
-                android:layout_height="10dp"
-                android:layout_gravity="center"
-                android:layout_weight="1"
-                android:singleLine="false"
-                android:text="Add the tree type"
-                android:textAppearance="?android:attr/textAppearanceLarge"
-                android:visibility="visible" />
+                android:layout_height="60dp"
+                android:layout_weight="1">
+
+                <TextView
+                    android:id="@+id/treeDetalisUpdate"
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:layout_weight="1"
+                    android:text="TextView" />
+
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/descriptionRaw"
+                android:layout_width="match_parent"
+                android:layout_height="60dp">
+
+                <Button
+                    android:id="@+id/nextDes"
+                    android:layout_width="64dp"
+                    android:layout_height="60dp"
+                    android:layout_weight="2"
+                    android:text="Next Description"
+                    app:icon="?attr/actionModeCloseDrawable" />
+
+                <TextView
+                    android:id="@+id/treeDescriptions"
+                    android:layout_width="187dp"
+                    android:layout_height="57dp"
+                    android:layout_gravity="center"
+                    android:layout_weight="0"
+                    android:singleLine="false"
+                    android:text="Tree Des {trees}"
+                    android:textAlignment="center"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
+                    android:visibility="visible" />
+
+            </TableRow>
+
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="30dp"
+                android:layout_weight="1">
+
+                <Button
+                    android:id="@+id/addDesExist"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="add Des" />
+
+                <Button
+                    android:id="@+id/addCurrentCond"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="Udate the tree state" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="429dp"
+                android:layout_height="30dp">
+
+                <Button
+                    android:id="@+id/exitDetails"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:text="Close"
+                    android:visibility="visible" />
+            </TableRow>
 
 
-        </LinearLayout>
+        </TableLayout>
 
         <LinearLayout
             android:id="@+id/form"
@@ -190,7 +261,8 @@
             android:background="#36A2D3"
             android:gravity="center"
             android:orientation="vertical"
-            android:visibility="invisible">
+            android:visibility="invisible"
+            tools:visibility="gone">
 
             <Button
                 android:id="@+id/exitForm"

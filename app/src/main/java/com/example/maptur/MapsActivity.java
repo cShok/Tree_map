@@ -57,6 +57,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -370,12 +371,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
         mMap.setOnMarkerClickListener(this::onMarkerClick); //marker pushed
         mMap.setOnMapLongClickListener(this::onMapLongClick);//long push
-        //mMap.getUiSettings().setMyLocationButtonEnabled(true);
+//        mMap.getUiSettings().setMyLocationButtonEnabled(true);
 
         // get your maps fragment
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         // Extract My Location View from maps fragment
         locationButton = mapFragment.getView().findViewById(0x2);
+
         // Change the visibility of my location button
         if(locationButton != null)
             locationButton.setVisibility(View.GONE);
@@ -383,10 +385,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         findViewById(R.id.ic_location).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 if(mMap != null)
                 {
                     if(locationButton != null)
                         locationButton.callOnClick();
+
 
                 }
             }
@@ -527,7 +531,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 updateLinear.setVisibility(View.VISIBLE);
             }
         });
-//        new Handler().postDelayed(() ->  moreDetails.setVisibility(View.INVISIBLE), 3000);
+        new Handler().postDelayed(() ->  moreDetails.setVisibility(View.INVISIBLE), 3000);
 
         return false;
     }
