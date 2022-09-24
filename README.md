@@ -2,7 +2,9 @@
 
 We are building an Android app that will let users find and map fruit trees around them.
 
-This the final assignment in the course [Advanced Java Programing Workshop](https://www.openu.ac.il/courses/20503.htm) at The Open University of Israel.
+This the final assignment in the course [Advanced Java Programing Workshop](https://www.openu.ac.il/courses/20503.htm) at The Open University of Israel and Guided by Tamar Bnaya.
+Our thanks to [Guy Griv](https://www.linkedin.com/in/guy-griv-a1076289/) for mentoring us on this project.
+
 
 ### Tech Stack
 
