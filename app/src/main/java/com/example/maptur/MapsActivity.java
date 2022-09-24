@@ -1,5 +1,6 @@
 package com.example.maptur;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -8,18 +9,17 @@ import android.text.TextWatcher;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.content.Context;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationManager;
+
 import androidx.core.app.ActivityCompat;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -27,9 +27,6 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentActivity;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import com.example.maptur.databinding.ActivityMapsBinding;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -55,10 +52,13 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -82,12 +82,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Button moreDetails;
 
     private LinearLayout addTreeLinear, updateLinear;
-    private TextView addTreeText, addDesText;
+    private TextView addTreeText, addDesText, existTreeDescription, treeDetailsUpdate;
     private EditText addTreeEdit,addDesEdit ;
-    private Button exitTreeForm, confirmTreeForm, exitDetails;
+    private Button exitTreeForm, confirmTreeForm, exitDetails, nextDescription, updateTreeCond, existAddTreeDes;
     private RadioGroup treeCond;
     Editable name, treeDes;
-
+    private RatingBar rateTree;
     int treeCondSts, formSts, snip;
     private Map<String,Object> markersMap = new HashMap<>();
     private ArrayList<Object> gTreeData = new ArrayList<>();
@@ -484,15 +484,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 //         Retrieve the data from the marker.
 
+        moreDetails = findViewById(R.id.more_details);
+        updateLinear = findViewById(R.id.details);
+        exitDetails = findViewById(R.id.exitDetails);
 
+        treeDetailsUpdate = findViewById(R.id.treeDetalisUpdate);//textview
+
+        nextDescription = findViewById(R.id.nextDes);//button
+        existTreeDescription = findViewById(R.id.treeDescriptions);//textview
+
+        updateTreeCond = findViewById(R.id.addCurrentCond);//button
+
+        rateTree = findViewById(R.id.treeRate);
 
         Task<QuerySnapshot> curMarker = getMarkerSnippet(marker);
         Task<QuerySnapshot> curTree  = getTreeData(marker);
-        moreDetails = findViewById(R.id.more_details);
-        moreDetails.setVisibility(View.VISIBLE);
 
-        updateLinear = findViewById(R.id.details);
-        exitDetails = findViewById(R.id.exitDetails);
 
         curMarker.addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
@@ -503,7 +510,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         curTree.addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
-//
+                moreDetails.setVisibility(View.VISIBLE);
 //                for( DocumentSnapshot onm :  curTree.getResult().getDocuments()){
 //                       onm.getReference().u;
 //                }
@@ -528,15 +535,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         moreDetails.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                for( DocumentSnapshot onm : curTree.getResult().getDocuments()) {
+
+                    DocumentReference refi = onm.getReference();
+                    if (refi.getId().equals(mSnippet)) {
+                        refi.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+                            @SuppressLint("SetTextI18n")
+                            @Override
+                            public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
+
+                                Map<String, Object> curTrees = (Map<String, Object>) value.getData();
+                                for (Object o : curTrees.values()) {
+                                    treeDetailsUpdate.setText("Location \n" + value.getData().keySet()
+                                            + "\n" + "Name:  " + ((ArrayList<Object>) o).get(0).toString()
+                                  + "\n"  + "Current State:  " + ((ArrayList<Object>) o).get(1).toString());
+//
+
+                                }
+
+//                                                treeDetailsUpdate.setText(curlit.indexOf());
+                            }
+                        });
+                    }
+                }
+
                 updateLinear.setVisibility(View.VISIBLE);
             }
         });
+
+
         new Handler().postDelayed(() ->  moreDetails.setVisibility(View.INVISIBLE), 3000);
 
         return false;
     }
 
- public void addTree(LatLng latLng)  {
+    public void addTree(LatLng latLng)  {
 
 
         updateUI();
