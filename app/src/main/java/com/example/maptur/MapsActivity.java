@@ -1,7 +1,15 @@
 package com.example.maptur;
 
+
 import android.annotation.SuppressLint;
+
+import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
+
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
@@ -16,12 +24,17 @@ import android.widget.RadioGroup;
 import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import android.Manifest;
 import android.content.pm.PackageManager;
 
 import androidx.core.app.ActivityCompat;
+
+
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -50,8 +63,11 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentReference;
+
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
+
+
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -74,10 +90,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private SignInButton btSignIn;
     private Button btLogout;
 
-    private TextView notSignedText;
+    private TextView notSignedText, notInRadiusText;
     private Button yes;
     private Button no;
     private Button moreDetails;
+
 
     private LinearLayout addTreeLinear, updateLinear, addExtraLinear;
     private TextView addTreeText, addDesText, existTreeDescription, treeDetailsUpdate;
@@ -96,6 +113,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private View locationButton;
 
+
+    private LinearLayout addTreeLinear, updateLinear;
+    private TextView addTreeText, addDesText;
+    private EditText addTreeEdit, addDesEdit;
+    private Button exitTreeForm, confirmTreeForm, exitDetails;
+    private RadioGroup treeCond;
+    Editable name, treeDes;
+
+    int treeCondSts, formSts, snip;
+    private final Map<String, Object> markersMap = new HashMap<>();
+    private ArrayList<Object> gTreeData = new ArrayList<>();
+    private String mSnippet;
+
+    private View locationButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,14 +203,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 drawerLayout.openDrawer(GravityCompat.START);
-
             }
         });
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull @org.jetbrains.annotations.NotNull MenuItem item) {
+                EditText input = null;
+
 
                 int id = item.getItemId();
                 drawerLayout.closeDrawer(GravityCompat.START);
@@ -194,8 +225,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         myMarkers();
                         break;
                     case R.id.fruit_now:
-                        Toast.makeText(MapsActivity.this, "Fruit now", Toast.LENGTH_SHORT).show();
+
+
+                        Toast.makeText(MapsActivity.this, "Tree that have fruit on them", Toast.LENGTH_SHORT).show();
+
                         break;
+                    //present markers based on users input
+                    case R.id.tree_type:
+                        input = new EditText(MapsActivity.this);
+                        input.setHint("Apple, Pear, Cherry, etc.");
+                        EditText finalInput = input;
+                        new AlertDialog.Builder(MapsActivity.this)
+                                .setTitle("Enter tree type")
+                                .setView(input)
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        String treeType = finalInput.getText().toString();
+                                        removeMarkers();
+                                        searchMarkers(treeType);
+                                    }
+                                })
+                                .setNegativeButton("Cancel", null)
+                                .show();
+                        Toast.makeText(MapsActivity.this, "Showing the trees you chose", Toast.LENGTH_SHORT).show();
+                        break;
+
                     default:
                         return true;
                 }
@@ -219,10 +274,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Check condition
         if (googleSignInAccount != null) {
             signedIn = true;
+
             // When google sign in account is not null
             // Set visibility
             btLogout.setVisibility(View.VISIBLE);
             btSignIn.setVisibility(View.GONE);
+
+
+            // change text in nav bar to user's name
+            NavigationView navigationView = findViewById(R.id.navigation_view);
+            View headerView = navigationView.getHeaderView(0);
+            TextView navUsername = (TextView) headerView.findViewById(R.id.name);
+            navUsername.setText(googleSignInAccount.getDisplayName());
+            // change text in nav bar to user's email
+            TextView navEmail = (TextView) headerView.findViewById(R.id.username);
+            navEmail.setText(googleSignInAccount.getEmail());
+
         } else {
             // When google sign in account is null
             // Set visibility
@@ -248,22 +315,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    //function that will present markers based on a string passed to the function
-    //private void presentMarkers(String search){
-    private void myMarkers() {
-        // pull all items in collection "markers" from firestore db
-        db.collection("markers")
-                //.whereEqualTo("title", search)
 
+    private void myMarkers() {
+
+        db.collection("markers")
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         for (QueryDocumentSnapshot document : task.getResult()) {
+//                             my trees
+//                            for (QueryDocumentSnapshot document : task.getResult()) {
+//                            if (document.getString("user").equals(mAuth.getCurrentUser().getUid())) {
+//                                LatLng marker = new LatLng(document.getDouble("position.latitude"), document.getDouble("position.longitude"));
+//                                mMap.addMarker(new MarkerOptions().position(marker).title(document.getString("title")));
+//                            }
+
                             // if lat is greater than 35.45
                             if (document.getDouble("position.latitude") > 31.5) {
                                 LatLng marker = new LatLng(document.getDouble("position.latitude"), document.getDouble("position.longitude"));
                                 mMap.addMarker(new MarkerOptions().position(marker).title(document.getString("title")));
+
+
                             }
+                        }
+                    } else {
+                        Log.w("TAG", "Error getting documents.", task.getException());
+                    }
+                });
+    }
+
+    // a function that will get a string from the user and present markers on map based on that string
+    private void searchMarkers(String search) {
+        db.collection("markers")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            if (document.getString("title").equals(search)) {
+                                LatLng marker = new LatLng(document.getDouble("position.latitude"), document.getDouble("position.longitude"));
+                                mMap.addMarker(new MarkerOptions().position(marker).title(document.getString("title")));
+                            }
+
                         }
                     } else {
                         Log.w("TAG", "Error getting documents.", task.getException());
@@ -351,13 +443,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         LatLng Jerusalem = new LatLng(31.7683, 35.2137);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(Jerusalem));
-        mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
-        mMap.setOnMarkerClickListener(this::onMarkerClick); //marker pushed
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(50));
+        mMap.setOnMarkerClickListener(this::onMarkerClick);//marker pushed
         mMap.setOnMapLongClickListener(this::onMapLongClick);//long push
-//        mMap.getUiSettings().setMyLocationButtonEnabled(true);
 
         // get your maps fragment
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+
         // Extract My Location View from maps fragment
         locationButton = mapFragment.getView().findViewById(0x2);
 
@@ -372,31 +464,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (mMap != null) {
                     if (locationButton != null)
                         locationButton.callOnClick();
-
-
                 }
             }
         });
     }
 
-
     public void onMapLongClick(LatLng latLng) {
-        /* need to check if sign in, if not, do nothing @eKurer*/
-        // check if in a public space
-        // pop the quiz question, first, do you wanna add tree...
-        // add a listener or once retrieve the data
         updateUI();
 
-        if (!signedIn) { //pop-up/ sign in please?
+        if (!signedIn) {
             notSignedText = (TextView) findViewById(R.id.NotSignedText);
-
             notSignedText.setVisibility(View.VISIBLE);
             new Handler().postDelayed(() -> notSignedText.setVisibility(View.INVISIBLE), 3000);
             return;
         }
 
-        //button do you want to add tree?
-        //#TODO any other touch close them both?
+        if (!isWithinRadius(latLng)) {
+            Toast.makeText(getApplicationContext(), "You can add a tree only in a radius of 50 meters from your current location", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        //TODO any other touch close them both?
 
         yes = (Button) findViewById(R.id.wantToAddTreeY);
         no = (Button) findViewById(R.id.wantToAddTreeN);
@@ -425,7 +513,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    //forigen key of trees
+
+    //foreign key of trees
+
     private Task<QuerySnapshot> getTreeData(final Marker marker) {
         return db.collection("trees")
                 .get().addOnCompleteListener(task -> {
@@ -487,9 +577,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         rateTree = findViewById(R.id.treeRate);
 
-
         Task<QuerySnapshot> curMarker = getMarkerSnippet(marker);
         Task<QuerySnapshot> curTree = getTreeData(marker);
+
+        moreDetails = findViewById(R.id.more_details);
+        moreDetails.setVisibility(View.VISIBLE);
+
 
 
         curMarker.addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -570,6 +663,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 updateLinear.setVisibility(View.VISIBLE);
             }
         });
+
         existAddTreeDes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -608,6 +702,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
 
+
         new Handler().postDelayed(() -> moreDetails.setVisibility(View.INVISIBLE), 3000);
 
         return false;
@@ -633,7 +728,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Double c1, c2;
         c1 = latLng.latitude;
         c2 = latLng.longitude;
-        treeMap.put(name.toString(), treeData);
+
+
+        treeMap.put(c1 + "+" + c2, treeData);
+
         Task<DocumentReference> h = db.collection("trees").add(treeMap);
         h.addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
             @Override
@@ -658,18 +756,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         treeCond = findViewById(R.id.treeCond);
         exitTreeForm = findViewById(R.id.exitForm);
         confirmTreeForm = findViewById(R.id.confirmTree);
-
         addTreeLinear.setVisibility(View.VISIBLE);
-
         addTreeEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
             }
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
             }
 
             @Override
@@ -767,6 +861,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //
 //        });
 //    }
+
+    // check if given lat lng is within 50m radius of the users current location
+    public boolean isWithinRadius(LatLng latLng) {
+        Location locationA = new Location("point A");
+        locationA.setLatitude(latLng.latitude);
+        locationA.setLongitude(latLng.longitude);
+        LatLng usersLocation = new LatLng(mMap.getMyLocation().getLatitude(), mMap.getMyLocation().getLongitude());
+        Location locationB = new Location("point B");
+        locationB.setLatitude(usersLocation.latitude);
+        locationB.setLongitude(usersLocation.longitude);
+
+        float distance = locationA.distanceTo(locationB);
+        if (distance < 50) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
 }
 
 
