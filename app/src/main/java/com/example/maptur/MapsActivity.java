@@ -114,19 +114,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private View locationButton;
 
 
-    private LinearLayout addTreeLinear, updateLinear;
-    private TextView addTreeText, addDesText;
-    private EditText addTreeEdit, addDesEdit;
-    private Button exitTreeForm, confirmTreeForm, exitDetails;
-    private RadioGroup treeCond;
-    Editable name, treeDes;
 
-    int treeCondSts, formSts, snip;
-    private final Map<String, Object> markersMap = new HashMap<>();
-    private ArrayList<Object> gTreeData = new ArrayList<>();
-    private String mSnippet;
 
-    private View locationButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
