@@ -139,62 +139,21 @@
 
         <LinearLayout
             android:id="@+id/addExtraDes"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="219dp"
+            android:layout_height="285dp"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
             android:layout_marginStart="123dp"
-            android:layout_marginTop="133dp"
-            android:layout_marginEnd="114dp"
+            android:layout_marginTop="213dp"
+            android:layout_marginEnd="69dp"
             android:layout_marginBottom="105dp"
             android:background="#BD1212"
             android:gravity="center|center_vertical"
             android:orientation="vertical"
             android:visibility="invisible"
             tools:visibility="visible">
-
-            <RadioGroup
-                android:id="@+id/treeExtraCond"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="30"
-                android:visibility="visible">
-
-                <RadioButton
-                    android:id="@+id/atumnE"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#fff"
-                    android:text="Brrrrrr"
-                    android:visibility="visible" />
-
-                <RadioButton
-                    android:id="@+id/winterE"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="#ff2"
-                    android:text="Blooming"
-                    android:visibility="visible" />
-
-                <RadioButton
-                    android:id="@+id/springE"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:background="#21D528"
-                    android:text="Blossom"
-                    android:visibility="visible" />
-
-                <RadioButton
-                    android:id="@+id/summerE"
-                    android:layout_width="match_parent"
-                    android:layout_height="48dp"
-                    android:background="#F40C0C"
-                    android:text="The Tree Is Ripe"
-                    android:visibility="visible"
-                    app:buttonTint="#FBF6F6" />
-            </RadioGroup>
 
             <EditText
                 android:id="@+id/addExtraDesText"
@@ -209,8 +168,7 @@
             <Button
                 android:id="@+id/addExtraDesButton"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_height="45dp"
                 android:minHeight="48dp"
                 android:text="ADD"
                 android:visibility="visible" />
