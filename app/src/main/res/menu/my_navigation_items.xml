@@ -15,18 +15,22 @@
         android:id="@+id/fruit_now"
         android:icon="@drawable/ic_baseline_map_24"
         android:title="Fruit now" />
+    <item
+        android:id="@+id/tree_type"
+        android:icon="@drawable/ic_baseline_map_24"
+        android:title="Show specific tree type" />
 
-    <item android:title="">
-        <menu>
-            <item
-                android:icon="@drawable/ic_baseline_login_24"
-                android:title="Login" />
-            // contact us
-            <item
-                android:icon="@drawable/ic_baseline_contact_support_24"
-                android:title="Contact Us" />
-        </menu>
-    </item>
+<!--    <item android:title="">-->
+        <!--        <menu>-->
+        <!--            <item-->
+        <!--                android:icon="@drawable/ic_baseline_login_24"-->
+        <!--                android:title="Login" />-->
+        <!--            // contact us-->
+        <!--            <item-->
+        <!--                android:icon="@drawable/ic_baseline_contact_support_24"-->
+        <!--                android:title="Contact Us" />-->
+        <!--        </menu>-->
+<!--    </item>-->
 
 
 </menu>
