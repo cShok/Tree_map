@@ -3,8 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/drawer_layout"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
     android:background="@color/lighgrey"
     tools:context=".MapsActivity">
 
@@ -137,22 +137,61 @@
             app:title="Fruit Tree map"
             app:titleTextColor="@color/black" />
 
-        <TableLayout
-            android:id="@+id/details"
-            android:layout_width="280dp"
-            android:layout_height="240dp"
+        <LinearLayout
+            android:id="@+id/addExtraDes"
+            android:layout_width="219dp"
+            android:layout_height="285dp"
             android:layout_alignParentStart="true"
             android:layout_alignParentTop="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
-            android:layout_marginStart="58dp"
-            android:layout_marginTop="81dp"
-            android:layout_marginEnd="73dp"
-            android:layout_marginBottom="268dp"
+            android:layout_marginStart="123dp"
+            android:layout_marginTop="213dp"
+            android:layout_marginEnd="69dp"
+            android:layout_marginBottom="105dp"
+            android:background="#BD1212"
+            android:gravity="center|center_vertical"
+            android:orientation="vertical"
+            android:visibility="invisible"
+            tools:visibility="visible">
+
+            <EditText
+                android:id="@+id/addExtraDesText"
+                android:layout_width="match_parent"
+                android:layout_height="141dp"
+                android:layout_weight="1"
+                android:ems="10"
+                android:inputType="textPersonName"
+                android:text="Name"
+                android:visibility="visible" />
+
+            <Button
+                android:id="@+id/addExtraDesButton"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:minHeight="48dp"
+                android:text="ADD"
+                android:visibility="visible" />
+
+        </LinearLayout>
+
+        <TableLayout
+            android:id="@+id/details"
+            android:layout_width="319dp"
+            android:layout_height="338dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="47dp"
+            android:layout_marginTop="55dp"
+            android:layout_marginEnd="45dp"
+            android:layout_marginBottom="210dp"
             android:background="#36A2D3"
             android:gravity="center"
             android:orientation="vertical"
-            android:visibility="invisible">
+            android:visibility="invisible"
+            tools:visibility="gone">
 
 
             <TableRow
@@ -162,25 +201,26 @@
 
                 <RatingBar
                     android:id="@+id/treeRate"
-                    android:layout_width="match_parent"
-                    android:layout_height="32dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
                     android:layout_weight="1"
-                    android:numStars="4" />
+                    android:numStars="5" />
 
             </TableRow>
 
             <TableRow
                 android:id="@+id/treeDeatilsRaw"
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
+                android:layout_height="80dp"
                 android:layout_weight="1">
 
                 <TextView
                     android:id="@+id/treeDetalisUpdate"
-                    android:layout_width="match_parent"
-                    android:layout_height="54dp"
+                    android:layout_width="280dp"
+                    android:layout_height="100dp"
                     android:layout_weight="1"
-                    android:text="TextView" />
+                    android:text="TextView"
+                    android:textAlignment="center" />
 
             </TableRow>
 
@@ -191,18 +231,19 @@
 
                 <Button
                     android:id="@+id/nextDes"
-                    android:layout_width="64dp"
-                    android:layout_height="60dp"
-                    android:layout_weight="2"
-                    android:text="Next Description"
-                    app:icon="?attr/actionModeCloseDrawable" />
+                    android:layout_width="70dp"
+                    android:layout_height="87dp"
+                    android:layout_weight="200000"
+                    android:text="Next "
+                    app:icon="?attr/actionModeCloseDrawable"
+                    app:iconPadding="0dp" />
 
                 <TextView
                     android:id="@+id/treeDescriptions"
-                    android:layout_width="187dp"
-                    android:layout_height="57dp"
+                    android:layout_width="267dp"
+                    android:layout_height="137dp"
                     android:layout_gravity="center"
-                    android:layout_weight="0"
+                    android:layout_weight="1"
                     android:singleLine="false"
                     android:text="Tree Des {trees}"
                     android:textAlignment="center"
@@ -213,20 +254,21 @@
 
             <TableRow
                 android:layout_width="match_parent"
-                android:layout_height="30dp"
+                android:layout_height="38dp"
                 android:layout_weight="1">
 
                 <Button
                     android:id="@+id/addDesExist"
-                    android:layout_width="match_parent"
+                    android:layout_width="63dp"
                     android:layout_height="match_parent"
-                    android:layout_weight="1"
+                    android:layout_weight="20000"
                     android:text="add Des" />
 
                 <Button
                     android:id="@+id/addCurrentCond"
-                    android:layout_width="match_parent"
+                    android:layout_width="143dp"
                     android:layout_height="match_parent"
+                    android:layout_weight="20000"
                     android:text="Udate the tree state" />
             </TableRow>
 
@@ -315,7 +357,7 @@
                 android:visibility="visible" />
 
             <RadioGroup
-                android:id="@+id/treeCondition"
+                android:id="@+id/treeCond"
                 android:layout_width="match_parent"
                 android:layout_height="47dp"
                 android:layout_weight="1"
