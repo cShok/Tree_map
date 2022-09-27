@@ -1,6 +1,11 @@
 package com.example.maptur;
 
+import android.Manifest;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
@@ -14,22 +19,14 @@ import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.Manifest;
-import android.annotation.SuppressLint;
-import android.content.Context;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationManager;
-import androidx.core.app.ActivityCompat;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.FragmentActivity;
-
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 import com.example.maptur.databinding.ActivityMapsBinding;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -54,7 +51,6 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -76,30 +72,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private SignInButton btSignIn;
     private Button btLogout;
 
-    private TextView notSignedText;
+    private TextView notSignedText, notInRadiusText;
     private Button yes;
     private Button no;
     private Button moreDetails;
 
     private LinearLayout addTreeLinear, updateLinear;
     private TextView addTreeText, addDesText;
-    private EditText addTreeEdit,addDesEdit ;
+    private EditText addTreeEdit, addDesEdit;
     private Button exitTreeForm, confirmTreeForm, exitDetails;
     private RadioGroup treeCond;
     Editable name, treeDes;
 
     int treeCondSts, formSts, snip;
-    private Map<String,Object> markersMap = new HashMap<>();
+    private final Map<String, Object> markersMap = new HashMap<>();
     private ArrayList<Object> gTreeData = new ArrayList<>();
     private String mSnippet;
 
-   
-
     private View locationButton;
-
-
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,29 +110,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         db = FirebaseFirestore.getInstance();
 
         // Assign variable
-        btSignIn=findViewById(R.id.bt_sign_in);
-        btLogout=findViewById(R.id.bt_logout);
+        btSignIn = findViewById(R.id.bt_sign_in);
+        btLogout = findViewById(R.id.bt_logout);
 
 
         // Initialize sign in options
-        GoogleSignInOptions googleSignInOptions=new GoogleSignInOptions.Builder(
+        GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(
                 GoogleSignInOptions.DEFAULT_SIGN_IN
         ).requestIdToken(getString(R.string.default_web_client_id))
                 .requestEmail()
                 .build();
 
         // Initialize sign in client
-        googleSignInClient= GoogleSignIn.getClient(MapsActivity.this
-                ,googleSignInOptions);
+        googleSignInClient = GoogleSignIn.getClient(MapsActivity.this
+                , googleSignInOptions);
 
         btSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // Initialize sign in intent
-                Intent intent=googleSignInClient.getSignInIntent();
+                Intent intent = googleSignInClient.getSignInIntent();
                 // Start activity for result
                 // todo: replace with https://stackoverflow.com/questions/62671106/onactivityresult-method-is-deprecated-what-is-the-alternative
-                startActivityForResult(intent,100);
+                startActivityForResult(intent, 100);
             }
         });
 
@@ -154,8 +144,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         // Check condition
-                        if(task.isSuccessful())
-                        {
+                        if (task.isSuccessful()) {
                             // When task is successful
                             // Sign out from firebase
                             mAuth.signOut();
@@ -169,7 +158,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 });
             }
         });
-        
+
         // navigation drawer
         MaterialToolbar toolbar = findViewById(R.id.topAppBar);
         DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
@@ -183,23 +172,45 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull @org.jetbrains.annotations.NotNull MenuItem item) {
+                EditText input = null;
+
 
                 int id = item.getItemId();
                 drawerLayout.closeDrawer(GravityCompat.START);
-                switch (id)
-                {
+                switch (id) {
                     case R.id.nav_all_trees:
                         Toast.makeText(getApplicationContext(), "All trees", Toast.LENGTH_SHORT).show();
                         presentMarkers();
                         break;
                     case R.id.nav_my_trees:
-                        Toast.makeText(MapsActivity.this, "Showing your trees",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MapsActivity.this, "Showing your trees", Toast.LENGTH_SHORT).show();
                         removeMarkers();
                         myMarkers();
                         break;
                     case R.id.fruit_now:
-                        Toast.makeText(MapsActivity.this, "Fruit now",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MapsActivity.this, "Tree that have fruit on them", Toast.LENGTH_SHORT).show();
                         break;
+                    //present markers based on users input
+                    case R.id.tree_type:
+                        input = new EditText(MapsActivity.this);
+                        input.setHint("Apple, Pear, Cherry, etc.");
+                        EditText finalInput = input;
+                        new AlertDialog.Builder(MapsActivity.this)
+                                .setTitle("Enter tree type")
+                                .setView(input)
+                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                    @Override
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        String treeType = finalInput.getText().toString();
+                                        removeMarkers();
+                                        searchMarkers(treeType);
+                                    }
+                                })
+                                .setNegativeButton("Cancel", null)
+                                .show();
+                        Toast.makeText(MapsActivity.this, "Showing the trees you chose", Toast.LENGTH_SHORT).show();
+                        break;
+
                     default:
                         return true;
                 }
@@ -217,12 +228,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void updateUI() {
         // Initialize google sign in account
-        GoogleSignInAccount googleSignInAccount=GoogleSignIn.getLastSignedInAccount(MapsActivity.this);
+        GoogleSignInAccount googleSignInAccount = GoogleSignIn.getLastSignedInAccount(MapsActivity.this);
         addTreeLinear = findViewById(R.id.form);
         addTreeLinear.setVisibility(View.INVISIBLE);
         // Check condition
-        if(googleSignInAccount!=null)
-        {
+        if (googleSignInAccount != null) {
             signedIn = true;
 
             // When google sign in account is not null
@@ -239,9 +249,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             TextView navEmail = (TextView) headerView.findViewById(R.id.username);
             navEmail.setText(googleSignInAccount.getEmail());
 
-        }
-        else
-        {
+        } else {
             // When google sign in account is null
             // Set visibility
             btLogout.setVisibility(View.GONE);
@@ -249,7 +257,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void presentMarkers(){
+    private void presentMarkers() {
         // pull all items in collection "markers" from firestore db
         db.collection("marker")
                 .get()
@@ -266,22 +274,45 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    //function that will present markers based on a string passed to the function
-    //private void presentMarkers(String search){
-    private void myMarkers(){
-        // pull all items in collection "markers" from firestore db
+    private void myMarkers() {
         db.collection("markers")
-                //.whereEqualTo("title", search)
-
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         for (QueryDocumentSnapshot document : task.getResult()) {
+//                             my trees
+//                            for (QueryDocumentSnapshot document : task.getResult()) {
+//                            if (document.getString("user").equals(mAuth.getCurrentUser().getUid())) {
+//                                LatLng marker = new LatLng(document.getDouble("position.latitude"), document.getDouble("position.longitude"));
+//                                mMap.addMarker(new MarkerOptions().position(marker).title(document.getString("title")));
+//                            }
+
                             // if lat is greater than 35.45
                             if (document.getDouble("position.latitude") > 31.5) {
                                 LatLng marker = new LatLng(document.getDouble("position.latitude"), document.getDouble("position.longitude"));
                                 mMap.addMarker(new MarkerOptions().position(marker).title(document.getString("title")));
+
+
                             }
+                        }
+                    } else {
+                        Log.w("TAG", "Error getting documents.", task.getException());
+                    }
+                });
+    }
+
+    // a function that will get a string from the user and present markers on map based on that string
+    private void searchMarkers(String search) {
+        db.collection("markers")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            if (document.getString("title").equals(search)) {
+                                LatLng marker = new LatLng(document.getDouble("position.latitude"), document.getDouble("position.longitude"));
+                                mMap.addMarker(new MarkerOptions().position(marker).title(document.getString("title")));
+                            }
+
                         }
                     } else {
                         Log.w("TAG", "Error getting documents.", task.getException());
@@ -293,16 +324,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         // Check condition
-        if(requestCode==100)
-        {
+        if (requestCode == 100) {
             // When request code is equal to 100
             // Initialize task
-            Task<GoogleSignInAccount> signInAccountTask= GoogleSignIn
+            Task<GoogleSignInAccount> signInAccountTask = GoogleSignIn
                     .getSignedInAccountFromIntent(data);
 
             // check condition
-            if(signInAccountTask.isSuccessful())
-            {
+            if (signInAccountTask.isSuccessful()) {
                 // When google sign in successful
                 // Initialize string
                 //String s="Google sign in successful";
@@ -311,16 +340,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // Initialize sign in account
                 try {
                     // Initialize sign in account
-                    GoogleSignInAccount googleSignInAccount=signInAccountTask
+                    GoogleSignInAccount googleSignInAccount = signInAccountTask
                             .getResult(ApiException.class);
                     // Check condition
-                    if(googleSignInAccount!=null)
-                    {
+                    if (googleSignInAccount != null) {
                         // When sign in account is not equal to null
                         // Initialize auth credential
-                        AuthCredential authCredential= GoogleAuthProvider
+                        AuthCredential authCredential = GoogleAuthProvider
                                 .getCredential(googleSignInAccount.getIdToken()
-                                        ,null);
+                                        , null);
                         // Check credential
                         mAuth.signInWithCredential(authCredential)
                                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -328,26 +356,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     public void onComplete(@NonNull Task<AuthResult> task) {
                                         // Check condition
 
-                                        if(task.isSuccessful())
-                                        {
+                                        if (task.isSuccessful()) {
                                             displayToast("Firebase authentication successful");
                                             signedIn = true;
                                             onStart();
-                                        }
-                                        else
-                                        {
+                                        } else {
                                             // When task is unsuccessful
                                             // Display Toast
-                                            displayToast("Authentication Failed :"+task.getException()
+                                            displayToast("Authentication Failed :" + task.getException()
                                                     .getMessage());
                                         }
                                     }
                                 });
 
                     }
-                }
-                catch (ApiException e)
-                {
+                } catch (ApiException e) {
                     e.printStackTrace();
                 }
             }
@@ -355,7 +378,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void displayToast(String s) {
-        Toast.makeText(getApplicationContext(),s,Toast.LENGTH_SHORT).show();
+        Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -377,53 +400,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         LatLng Jerusalem = new LatLng(31.7683, 35.2137);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(Jerusalem));
-        mMap.moveCamera(CameraUpdateFactory.zoomTo(10));
-        mMap.setOnMarkerClickListener(this::onMarkerClick); //marker pushed
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(50));
+        mMap.setOnMarkerClickListener(this::onMarkerClick);//marker pushed
         mMap.setOnMapLongClickListener(this::onMapLongClick);//long push
-//        mMap.getUiSettings().setMyLocationButtonEnabled(true);
 
         // get your maps fragment
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+
         // Extract My Location View from maps fragment
         locationButton = mapFragment.getView().findViewById(0x2);
 
         // Change the visibility of my location button
-        if(locationButton != null)
+        if (locationButton != null)
             locationButton.setVisibility(View.GONE);
 
         findViewById(R.id.ic_location).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                if(mMap != null)
-                {
-                    if(locationButton != null)
+                if (mMap != null) {
+                    if (locationButton != null)
                         locationButton.callOnClick();
-
-
                 }
             }
         });
     }
 
-
     public void onMapLongClick(LatLng latLng) {
-        /* need to check if sign in, if not, do nothing @eKurer*/
-        // check if in a public space
-        // pop the quiz question, first, do you wanna add tree...
-        // add a listener or once retrieve the data
         updateUI();
 
-        if (!signedIn) { //pop-up/ sign in please?
+        if (!signedIn) {
             notSignedText = (TextView) findViewById(R.id.NotSignedText);
-
             notSignedText.setVisibility(View.VISIBLE);
-            new Handler().postDelayed(() ->  notSignedText.setVisibility(View.INVISIBLE), 3000);
+            new Handler().postDelayed(() -> notSignedText.setVisibility(View.INVISIBLE), 3000);
             return;
         }
 
-        //button do you want to add tree?
-        //#TODO any other touch close them both?
+        if (!isWithinRadius(latLng)) {
+            Toast.makeText(getApplicationContext(), "You can add a tree only in a radius of 50 meters from your current location", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        //TODO any other touch close them both?
 
         yes = (Button) findViewById(R.id.wantToAddTreeY);
         no = (Button) findViewById(R.id.wantToAddTreeN);
@@ -432,50 +449,52 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         no.setVisibility(View.VISIBLE);
 
         yes.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    yes.setVisibility(View.INVISIBLE);
-                    no.setVisibility(View.INVISIBLE);
-                    addTreeForm(latLng);
-                }
-            });
+            @Override
+            public void onClick(View view) {
+                yes.setVisibility(View.INVISIBLE);
+                no.setVisibility(View.INVISIBLE);
+                addTreeForm(latLng);
+            }
+        });
         no.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    yes.setVisibility(View.INVISIBLE);
-                    no.setVisibility(View.INVISIBLE);
+            @Override
+            public void onClick(View view) {
+                yes.setVisibility(View.INVISIBLE);
+                no.setVisibility(View.INVISIBLE);
 
 
-                }
+            }
 
-            });
+        });
 
     }
 
-    //forigen key of trees
-    private Task<QuerySnapshot> getTreeData(final Marker marker){
+    //foreign key of trees
+    private Task<QuerySnapshot> getTreeData(final Marker marker) {
         return db.collection("trees")
                 .get().addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             if (Objects.equals(mSnippet, document.getId())) {
-                                gTreeData = (ArrayList<Object>) document.getData().values().toArray()[0] ;
+                                gTreeData = (ArrayList<Object>) document.getData().values().toArray()[0];
                                 break;
                             }
 
-                        }}
-                    else{
-                        Log.w("TAG", "Error getting documents." , task.getException());
-                    }});
+                        }
+                    } else {
+                        Log.w("TAG", "Error getting documents.", task.getException());
+                    }
+                });
     }
-    private Task<QuerySnapshot> getMarkerSnippet(final Marker marker){
+
+    private Task<QuerySnapshot> getMarkerSnippet(final Marker marker) {
 
         return db.collection("marker").get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 for (QueryDocumentSnapshot document : task.getResult()) {
 
-                    if (marker.getPosition().latitude ==  document.getDouble("position.latitude") &&
-                            marker.getPosition().longitude==  document.getDouble("position.longitude")) {
+                    if (marker.getPosition().latitude == document.getDouble("position.latitude") &&
+                            marker.getPosition().longitude == document.getDouble("position.longitude")) {
                         String cur = (String) document.get("snippet");
                         Log.i("treeid", "cur " + cur + "  " + document.getId());
 
@@ -483,20 +502,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         break;
 
                     }
-                }}
-            else{
-                Log.w("TAG", "Error getting documents." , task.getException());
+                }
+            } else {
+                Log.w("TAG", "Error getting documents.", task.getException());
             }
         });
     }
+
     public boolean onMarkerClick(final Marker marker) {
 
 //         Retrieve the data from the marker.
 
 
-
         Task<QuerySnapshot> curMarker = getMarkerSnippet(marker);
-        Task<QuerySnapshot> curTree  = getTreeData(marker);
+        Task<QuerySnapshot> curTree = getTreeData(marker);
         moreDetails = findViewById(R.id.more_details);
         moreDetails.setVisibility(View.VISIBLE);
 
@@ -540,12 +559,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 updateLinear.setVisibility(View.VISIBLE);
             }
         });
-        new Handler().postDelayed(() ->  moreDetails.setVisibility(View.INVISIBLE), 3000);
+        new Handler().postDelayed(() -> moreDetails.setVisibility(View.INVISIBLE), 3000);
 
         return false;
     }
 
- public void addTree(LatLng latLng)  {
+    public void addTree(LatLng latLng) {
 
 
         updateUI();
@@ -557,28 +576,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         newMarker.position(latLng);
 
-        descriptionMap.put(googleSignInClient.toString(),  treeDes.toString());
+        descriptionMap.put(googleSignInClient.toString(), treeDes.toString());
         treeData.add(name.toString());//0
         treeData.add(treeCondSts);//1
         treeData.add(descriptionMap);//2
         treeData.add(0); //rating//3
-        Double c1,c2;
-        c1 = latLng.latitude; c2 = latLng.longitude;
-        treeMap.put( c1.toString() + "+" + c2.toString() , treeData);
-         Task<DocumentReference> h = db.collection("trees").add(treeMap);
-         h.addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
-             @Override
-             public void onComplete(@NonNull Task<DocumentReference> task) {
+        Double c1, c2;
+        c1 = latLng.latitude;
+        c2 = latLng.longitude;
+        treeMap.put(c1 + "+" + c2, treeData);
+        Task<DocumentReference> h = db.collection("trees").add(treeMap);
+        h.addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentReference> task) {
 
-                 newMarker.title(name.toString());
-                 newMarker.snippet(h.getResult().getId());
-                 db.collection("marker").add(newMarker);
-                 presentMarkers();
-             }
-         });
+                newMarker.title(name.toString());
+                newMarker.snippet(h.getResult().getId());
+                db.collection("marker").add(newMarker);
+                presentMarkers();
+            }
+        });
     }
 
-    public void addTreeForm(LatLng latLng)  {
+    public void addTreeForm(LatLng latLng) {
 
 
         addTreeLinear = findViewById(R.id.form);
@@ -589,18 +609,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         treeCond = findViewById(R.id.treeCondition);
         exitTreeForm = findViewById(R.id.exitForm);
         confirmTreeForm = findViewById(R.id.confirmTree);
-
         addTreeLinear.setVisibility(View.VISIBLE);
-
         addTreeEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
             }
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
             }
 
             @Override
@@ -631,22 +647,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         treeCond.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
-                    switch(i) {
-                        case R.id.winter:
-                            treeCondSts = 0;
-                            break;
-                        case R.id.spring:
-                            treeCondSts = 1;
-                            break;
+                switch (i) {
+                    case R.id.winter:
+                        treeCondSts = 0;
+                        break;
+                    case R.id.spring:
+                        treeCondSts = 1;
+                        break;
 
-                        case R.id.summer:
-                            treeCondSts = 2;
-                            break;
-                        case R.id.atumn:
-                            treeCondSts = 3;
-                            break;
-                    }
+                    case R.id.summer:
+                        treeCondSts = 2;
+                        break;
+                    case R.id.atumn:
+                        treeCondSts = 3;
+                        break;
                 }
+            }
 
         });
 
@@ -664,4 +680,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
     }
+
+    // check if given lat lng is within 50m radius of the users current location
+    public boolean isWithinRadius(LatLng latLng) {
+        Location locationA = new Location("point A");
+        locationA.setLatitude(latLng.latitude);
+        locationA.setLongitude(latLng.longitude);
+        LatLng usersLocation = new LatLng(mMap.getMyLocation().getLatitude(), mMap.getMyLocation().getLongitude());
+        Location locationB = new Location("point B");
+        locationB.setLatitude(usersLocation.latitude);
+        locationB.setLongitude(usersLocation.longitude);
+
+        float distance = locationA.distanceTo(locationB);
+        if (distance < 50) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 }

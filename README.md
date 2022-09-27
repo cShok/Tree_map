@@ -17,4 +17,4 @@ We used various tutorials and documentation to help us with the project, mainly 
 #### To run locally:
 
 - add `MAPS_API_KEY` to `local.properties`
-- add your SHA to firebase ([Link](https://stackoverflow.com/questions/67460387/how-to-get-sha1-code-in-new-version-of-android-studio-4-2))
+- add your SHA to firebase ([explanation](https://stackoverflow.com/questions/67460387/how-to-get-sha1-code-in-new-version-of-android-studio-4-2))
