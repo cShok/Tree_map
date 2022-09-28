@@ -8,9 +8,12 @@ Our thanks to [Guy Griv](https://www.linkedin.com/in/guy-griv-a1076289/) for men
 
 ### Tech Stack
 
-Although Android apps tend to be written in Kotlin in our days, we wrote it in Java due to the subject of the course.
-We used Google Sign-in as our login system, and used the FireStore database to store the data.
-Google Maps API is obviously used to display the map and Android Studio is used as the IDE.
+Although Android apps tend to be written in Kotlin in our days, we wrote it in **Java** due to the subject of the course.
+
+We used **Google Sign-in** as our login system, and used the **FireStore** database to store the data.
+
+**Google Maps API** is obviously used to display the map, and **Android Studio** is used as the IDE.
+
 We used various tutorials and documentation to help us with the project, mainly from [Firebase](https://firebase.google.com/docs/android/setup) and [Google Maps API](https://developers.google.com/maps/documentation/android-sdk/start).
 
 
