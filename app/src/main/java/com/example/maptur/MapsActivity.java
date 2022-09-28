@@ -25,16 +25,12 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
-
 import androidx.core.app.ActivityCompat;
 
 
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -64,17 +60,15 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentReference;
 
+
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
-
-
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -105,12 +99,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private RatingBar rateTree;
     int treeCondSts, treeRating;
     private Map<String, Object> markersMap = new HashMap<>();
-    private ArrayList<Object> gTreeData = new ArrayList<>();
+    private Map<String, Object> gTreeData = new HashMap<>();
     Map<String, Object> desList = new HashMap<>();
+
+    ArrayList<Object> treeD =new ArrayList<>();
     private String mSnippet, desExtra = " ";
     DocumentReference refi;
     private int sameM, nums;
-
+    private int iDes = 0;
     private View locationButton;
 
 
@@ -432,7 +428,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         LatLng Jerusalem = new LatLng(31.7683, 35.2137);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(Jerusalem));
-        mMap.moveCamera(CameraUpdateFactory.zoomTo(50));
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(50000));
         mMap.setOnMarkerClickListener(this::onMarkerClick);//marker pushed
         mMap.setOnMapLongClickListener(this::onMapLongClick);//long push
 
@@ -468,7 +464,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return;
         }
 
-        if (!isWithinRadius(latLng)) {
+        if (isWithinRadius(latLng)) {
             Toast.makeText(getApplicationContext(), "You can add a tree only in a radius of 50 meters from your current location", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -511,8 +507,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     if (task.isSuccessful()) {
                         for (QueryDocumentSnapshot document : task.getResult()) {
                             if (Objects.equals(mSnippet, document.getId())) {
-                                gTreeData = (ArrayList<Object>) document.getData().values().toArray()[0];
-                                break;
+
+                                gTreeData = document.getData();
+
                             }
 
                         }
@@ -568,6 +565,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         Task<QuerySnapshot> curMarker = getMarkerSnippet(marker);
         Task<QuerySnapshot> curTree = getTreeData(marker);
+        Object [] treeArray  = new Object[4];
+
+        ArrayList<String> desc = new ArrayList<>();
+
 
         moreDetails = findViewById(R.id.more_details);
         moreDetails.setVisibility(View.VISIBLE);
@@ -613,46 +614,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
         moreDetails.setOnClickListener(new View.OnClickListener() {
+
+
             @Override
             public void onClick(View view) {
-                for (DocumentSnapshot onm : curTree.getResult().getDocuments()) {
-                    refi = onm.getReference();
-                    if (refi.getId().equals(mSnippet)) {
-                        refi.addSnapshotListener(new EventListener<DocumentSnapshot>() {
+
+                List<DocumentSnapshot> r = curTree.getResult().getDocuments();
+                DocumentReference ref = r.get(0).getReference();
+                        ref.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                             @SuppressLint("SetTextI18n")
                             @Override
-                            public void onEvent(@Nullable DocumentSnapshot value, @Nullable FirebaseFirestoreException error) {
+                            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                                DocumentSnapshot ds = task.getResult();
+                                for (Object o : ds.getData().values()) {
 
-                                Map<String, Object> curTrees = (Map<String, Object>) value.getData();
-                                for (Object o : curTrees.values()) {
-//                                    treeDetailsUpdate.setText("Location \n" + value.getData().keySet()
-//                                            + "\n" + "Name:  " + ((ArrayList<Object>) o).get(0).toString()
-//                                  + "\n"  + "Current State:  " + ((ArrayList<Object>) o).get(1).toString());
-
-                                    desList = (Map<String, Object>) ((ArrayList<Object>) o).get(2);
-                                    Object[] desArray = desList.values().toArray();
-                                    nextDescription.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            int i = 0;
-                                            desArray[(i++) % desList.size()].toString();
-
-                                        }
-                                    });
-
-
+                                    treeD = ((ArrayList<Object>) o);
+//                                 extraDetails();
+//                                   for(Map.Entry<String,Object> ent : ((Map<String,Object>)treeD.get(2)) )
+//                                   desc.add(ent.toString() + "\n BY:~" + ent.getKey().toString());
+                                    Log.i("Hihi", treeD.toString());
                                 }
+//                 existTreeDescription.setText(desc.get(iDes / desc.size()));
+                                treeDetailsUpdate.setText(treeD.get().toString() +'\n' +
+                                       + '\n' + treeD.get(1).toString() + '\n' + treeD.get(3).toString());
+                                updateLinear.setVisibility(View.VISIBLE);
 
-//                                                treeDetailsUpdate.setText(curlit.indexOf());
+
                             }
-                        });
-                    }
-                }
 
-                updateLinear.setVisibility(View.VISIBLE);
+                            }
+                        );
+
+//
             }
         });
-
+        nextDescription.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                iDes++;
+                existTreeDescription.setText(desc.get(iDes / desc.size()));
+            }
+        });
         existAddTreeDes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -690,6 +692,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 });
             }
         });
+
+
 
 
         new Handler().postDelayed(() -> moreDetails.setVisibility(View.INVISIBLE), 3000);
@@ -869,7 +873,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-
+    public void extraDetails() {
+    }
 }
 
 
