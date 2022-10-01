@@ -71,6 +71,7 @@ import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -108,10 +109,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     ArrayList<Object> treeD =new ArrayList<>();
     private String mSnippet, desExtra = " ";
-    DocumentReference docRef;
+    DocumentReference docRef, desID;
     private int sameM, nums;
     private int iDes = 0;
     private View locationButton;
+
+    private Collection<Object> chosenTreeDes = new ArrayList<>();
 
     @Override
     public void onStart() {
@@ -460,11 +463,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
     // end of GUI functions  ////
 
-
-
-
-
-
     public void onMapLongClick(LatLng latLng) {
         updateUI();
 
@@ -509,8 +507,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         new Handler().postDelayed(() -> yes.setVisibility(View.INVISIBLE), 3000);
         new Handler().postDelayed(() -> no.setVisibility(View.INVISIBLE), 3000);
     }
-
-
 
     // this function gets the marker and returns the tree document in the collections 'trees' the matches the markers key value 'mSnipet'
     private Object getTreeData(Marker marker) {
@@ -558,7 +554,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     public boolean onMarkerClick(final Marker marker) {
 
-//         Retrieve the data from the marker.
+//      Retrieve the data from the marker.
 
         moreDetails = findViewById(R.id.more_details); // The button for more details
 
@@ -575,6 +571,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         addExtraLinear = findViewById(R.id.addExtraDes);//linear layout to add description
         addExtraEdit = findViewById(R.id.addExtraDesText);//EditView to get the des
         conExtraDes = findViewById(R.id.addExtraDesButton); //button to confirm
+
+
 
         rateTree = findViewById(R.id.treeRate);// rating bar
 
@@ -609,11 +607,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         if (task.isSuccessful()) {
                                             for (QueryDocumentSnapshot document : task.getResult()) {
                                                 if (mSnippet.equals(document.getData().keySet().toArray()[0].toString())) {
-                                                    String cur = (String) (document.getData().values().toArray()[0].toString());
-                                                    existTreeDescription.setText(cur);
+                                                    desID = document.getReference();
+                                                    // save to value cur only the first value in the array
+                                                    Collection<Object> cur = (document.getData().values());
+                                                    // cast cur[0] to array
+                                                    ArrayList<String> curArr = (ArrayList<String>) cur.toArray()[0];
+                                                    // set desToPresent to the first value in the curArr array
+                                                    String desToPresent = curArr.get(0).toString();
+                                                    existTreeDescription.setText(desToPresent);
                                                     break;
-                                                    // TODO set a global variable to the current description
-                                                    // TODO use a counter instead of int to get the next description
                                                 }
 
                                             }
@@ -623,10 +625,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     }
                                 });
 
-
                                 //set the rating using 'rating' field
                                 rateTree.setRating(document.getDouble("rating").floatValue());
-
                                 //set the listener on the exit button
                                 exitDetails.setOnClickListener(new View.OnClickListener() {
                                     @Override
@@ -652,8 +652,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         nextDescription.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //existTreeDescription.setText(docRef.getString("description2"));
-                nextDescription.setVisibility(View.INVISIBLE);
+                // loop through all the values in the array, when get to the last value, set the text to the first value
+                db.collection("description").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                if (mSnippet.equals(document.getData().keySet().toArray()[0].toString())) {
+                                    desID = document.getReference();
+                                    // save to value cur only the first value in the array
+                                    Collection<Object> cur = (document.getData().values());
+                                    // cast cur[0] to array
+                                    ArrayList<String> curArr = (ArrayList<String>) cur.toArray()[0];
+                                    // set desToPresent to the first value in the curArr array
+                                    String desToPresent = curArr.get((int) (iDes / curArr.size()));
+                                    iDes++;
+                                    existTreeDescription.setText(desToPresent);
+                                    break;
+                                }
+                            }
+                        } else {
+                            Log.d("TAG", "Error getting documents: ", task.getException());
+                        }
+                    }
+                });
             }
         });
         //set the listener on the add description button
@@ -661,13 +683,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View view) {
                 addExtraLinear.setVisibility(View.VISIBLE);
-                existAddTreeDes.setVisibility(View.INVISIBLE);
+                updateLinear.setVisibility(View.INVISIBLE);
+                addExtraEdit.addTextChangedListener(new TextWatcher() {
+                    @Override
+                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                    }
+                    @Override
+                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+                    }
+                    @Override
+                    public void afterTextChanged(Editable editable) {
+                        desExtra = editable.toString();
+                    }
+                });
                 //set the listener on the confirm button
                 conExtraDes.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        //update the tree
-                        docRef.update("description2", addExtraEdit.getText().toString());
+                        //add a value to the arraylist
+                        chosenTreeDes.add(desExtra);
+                        db.collection("description").document(desID.getId()).update(mSnippet, chosenTreeDes);
                         addExtraLinear.setVisibility(View.INVISIBLE);
                         existAddTreeDes.setVisibility(View.VISIBLE);
                     }
@@ -696,43 +732,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 updateLinear.setVisibility(View.INVISIBLE);
             }
         });//exit more details
-        existAddTreeDes.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                updateLinear.setVisibility(View.INVISIBLE);
-                addExtraLinear.setVisibility(View.VISIBLE);
-                addExtraEdit.addTextChangedListener(new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-                    }
-
-                    @Override
-                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-                    }
-
-                    @Override
-                    public void afterTextChanged(Editable editable) {
-                        desExtra = editable.toString();
-                    }
-                });
-//                conExtraDes.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View view) {
-//
-//                        if (!desExtra.toString().equals(" ")) {
-//
-//                            updateTreeComp(curTree, 2);
-//                            addExtraLinear.setVisibility(View.INVISIBLE);
-//                        } else {
-//                            addExtraEdit.setText("please add description");
-//                        }
-//                    }
-//                });
-            }
-        });// the layout to add description
 
         new Handler().postDelayed(() -> moreDetails.setVisibility(View.INVISIBLE), 3000);
 
@@ -744,6 +743,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             tree.put("name", addTreeName.toString());
             tree.put("condition", treeCondSts);
             tree.put("rating", 0);
+            tree.put("numOfRates", 0);
             db.collection("trees").add(tree).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                 @Override
                 public void onSuccess(DocumentReference documentReference) {
@@ -905,10 +905,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-
-
-
-
     // check if given lat lng is within 50m radius of the users current location
     public boolean isWithinRadius(LatLng latLng) {
         Location locationA = new Location("point A");
@@ -920,7 +916,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationB.setLongitude(usersLocation.longitude);
 
         float distance = locationA.distanceTo(locationB);
-        if (distance < 50) {
+        if (distance < 1) {
             return true;
         } else {
             return false;
