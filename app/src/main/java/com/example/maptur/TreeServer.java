@@ -9,47 +9,27 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
-import java.util.ArrayList;
-
 public class TreeServer {
 
-    //a function getAllMarkers that gets db and returns an arraylist <object> of all the positions from collection 'markers'
-//    public static ArrayList<MarkerOptions> getAllMarkers(FirebaseFirestore db) {
-//        ArrayList<MarkerOptions> markers = new ArrayList<>();
-//        db.collection("markers")
-//                .get()
-//                .addOnCompleteListener(task -> {
-//                    if (task.isSuccessful()) {
-//                        for (QueryDocumentSnapshot document : task.getResult()) {
-//                            markers.add(document.toObject(MarkerOptions.class));
-//                        }
-//                    } else {
-//                        Log.d("TAG", "Error getting documents: ", task.getException());
-//                    }
-//                });
-//        return markers;
-//    }
-    // method that gets a map and db and user name and adds markers to the map that the user created
     public static void getAllMarkers(GoogleMap mMap, FirebaseFirestore db, FirebaseAuth userName) {
 
-                            db.collection("markers")
-                                    .get()
-                                    .addOnCompleteListener(task1 -> {
-                                        if (task1.isSuccessful()) {
-                                            for (QueryDocumentSnapshot document1 : task1.getResult()) {
-                                                LatLng marker = new LatLng(document1.getDouble("position.latitude"), document1.getDouble("position.longitude"));
-                                                mMap.addMarker(new MarkerOptions().position(marker).title(document1.getString("title")));
-                                            }
-                                        } else {
-                                            Log.w("TAG", "Error getting documents.", task1.getException());
-                                        }
-                                    });
+        db.collection("markers")
+                .get()
+                .addOnCompleteListener(task1 -> {
+                    if (task1.isSuccessful()) {
+                        for (QueryDocumentSnapshot document1 : task1.getResult()) {
+                            LatLng marker = new LatLng(document1.getDouble("position.latitude"), document1.getDouble("position.longitude"));
+                            mMap.addMarker(new MarkerOptions().position(marker).title(document1.getString("title")));
+                        }
+                    } else {
+                        Log.w("TAG", "Error getting documents.", task1.getException());
+                    }
+                });
 
 
 
     }
 
-    // method that gets a map and db and user name and adds markers to the map that the user created
     public static void presentMyMarkers(GoogleMap mMap, FirebaseFirestore db, FirebaseAuth userName) {
         // return all the trees where the 'creator' field is equal to the userName
         db.collection("trees")
@@ -80,9 +60,4 @@ public class TreeServer {
                 });
 
     }
-
-
-
-
-
 }
