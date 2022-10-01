@@ -1,12 +1,10 @@
 package com.example.maptur;
 
 
-import android.annotation.SuppressLint;
-
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
-
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -25,12 +23,9 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.core.app.ActivityCompat;
-
-
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -61,8 +56,6 @@ import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentReference;
-
-
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -91,7 +84,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Button no;
     private Button moreDetails;
 
-
     private LinearLayout addTreeLinear, updateLinear, addExtraLinear, updateTreeConditionLinear;
     private TextView addTreeText, addDesText, existTreeDescription, treeDetailsUpdate;
     private EditText addTreeEdit, addDesEdit, addExtraEdit;
@@ -102,24 +94,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     int treeCondSts, treeRating;
     private Map<String, Object> markersMap = new HashMap<>();
     private Map<String, Object> gTreeData = new HashMap<>();
-    Map<String, Object> desList = new HashMap<>();
 
-    ArrayList<Object> treeD =new ArrayList<>();
     private String mSnippet, desExtra = " ";
     DocumentReference docRef, desID;
-    private int sameM, nums;
     private int iDes = 0;
     private View locationButton;
 
     private Collection<Object> chosenTreeDes = new ArrayList<>();
 
+    //general functions
     @Override
     public void onStart() {
         super.onStart();
         Log.i("onStart", "onStart called");
         updateUI();
     }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -141,7 +130,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Assign variable
         btSignIn = findViewById(R.id.bt_sign_in);
         btLogout = findViewById(R.id.bt_logout);
-
 
         // Initialize sign in options
         GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(
@@ -218,7 +206,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         break;
                     case R.id.fruit_now:
 
-
                         Toast.makeText(MapsActivity.this, "Tree that have fruit on them", Toast.LENGTH_SHORT).show();
 
                         break;
@@ -250,9 +237,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
         updateUI();
-        //presentMarkers();
     }
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -297,19 +282,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         Log.i("onActivityResult", "onActivityResult called");
         // Check condition
         if (requestCode == 100) {
-            // When request code is equal to 100
-            // Initialize task
             Task<GoogleSignInAccount> signInAccountTask = GoogleSignIn
                     .getSignedInAccountFromIntent(data);
 
-            // check condition
             if (signInAccountTask.isSuccessful()) {
-                // When google sign in successful
-                // Initialize string
-                //String s="Google sign in successful";
-                // Display Toast
-                //displayToast(s);
-                // Initialize sign in account
+
                 try {
                     // Initialize sign in account
                     GoogleSignInAccount googleSignInAccount = signInAccountTask
@@ -349,82 +326,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    //// GUI functions  ////
-
-    // util helper function
-    private void removeMarkers() {
-        //remove all markers
-        mMap.clear();
-    }
-    // big helper function
-    private void updateUI() {
-        // Initialize google sign in account
-        GoogleSignInAccount googleSignInAccount = GoogleSignIn.getLastSignedInAccount(MapsActivity.this);
-        //presentMarkers();
-        addTreeLinear = findViewById(R.id.form);
-        addTreeLinear.setVisibility(View.INVISIBLE);
-        // Check condition
-        if (googleSignInAccount != null) {
-            signedIn = true;
-
-            // When google sign in account is not null
-            // Set visibility
-            btLogout.setVisibility(View.VISIBLE);
-            btSignIn.setVisibility(View.GONE);
-
-
-            // change text in nav bar to user's name
-            NavigationView navigationView = findViewById(R.id.navigation_view);
-            View headerView = navigationView.getHeaderView(0);
-            TextView navUsername = (TextView) headerView.findViewById(R.id.name);
-            navUsername.setText(googleSignInAccount.getDisplayName());
-            // change text in nav bar to user's email
-            TextView navEmail = (TextView) headerView.findViewById(R.id.username);
-            navEmail.setText(googleSignInAccount.getEmail());
-
-        } else {
-            // When google sign in account is null
-            // Set visibility
-            btLogout.setVisibility(View.GONE);
-            btSignIn.setVisibility(View.VISIBLE);
-        }
-    }
-    // small helper function
-    private void presentMarkers() {
-        TreeServer.getAllMarkers(mMap, db, mAuth);
-
-    }
-
-    // small helper function
-    private void myMarkers() {
-        TreeServer.presentMyMarkers(mMap, db, mAuth);
-    }
-    // medium helper function
-    // a function that will get a string from the user and present markers on map based on that string
-    private void searchMarkers(String search) {
-        db.collection("markers")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            if (document.getString("title").equals(search)) {
-                                LatLng marker = new LatLng(document.getDouble("position.latitude"), document.getDouble("position.longitude"));
-                                mMap.addMarker(new MarkerOptions().position(marker).title(document.getString("title")));
-                            }
-
-                        }
-                    } else {
-                        Log.w("TAG", "Error getting documents.", task.getException());
-                    }
-                });
-    }
-
-    // utils
-    private void displayToast(String s) {
-        Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
-    }
-    // end of GUI functions  ////
-
+    //map and marker functions
     public void onMapLongClick(LatLng latLng) {
         updateUI();
 
@@ -461,64 +363,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View view) {
                 yes.setVisibility(View.INVISIBLE);
                 no.setVisibility(View.INVISIBLE);
-
-
             }
 
         });
         new Handler().postDelayed(() -> yes.setVisibility(View.INVISIBLE), 3000);
         new Handler().postDelayed(() -> no.setVisibility(View.INVISIBLE), 3000);
     }
-
-    // this function gets the marker and returns the tree document in the collections 'trees' the matches the markers key value 'mSnipet'
-    private Object getTreeData(Marker marker) {
-        db.collection("trees").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    for (QueryDocumentSnapshot document : task.getResult()) {
-                        if (document.getId().equals(mSnippet)) {
-                            if(document.exists()) {
-                                docRef = document.getReference();
-
-                                Log.i("docRef", docRef.toString());
-                                break;
-                            }
-                        }
-                    }
-                } else {
-                    Log.d("TAG", "Error getting documents: ", task.getException());
-                }
-            }
-        });
-        return docRef;
-    }
-
-    private Task<QuerySnapshot> getMarkerSnippet(final Marker marker) {
-
-        return db.collection("markers").get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                for (QueryDocumentSnapshot document : task.getResult()) {
-
-                    if (marker.getPosition().latitude == document.getDouble("position.latitude") &&
-                            marker.getPosition().longitude == document.getDouble("position.longitude")) {
-                        String cur = (String) document.get("snippet");
-                        Log.i("treeid", "cur " + cur + "  " + document.getId());
-
-                        mSnippet = cur;
-                        break;
-
-                    }
-                }
-            } else {
-                Log.w("TAG", "Error getting documents.", task.getException());
-            }
-        });
-    }
-
     public boolean onMarkerClick(final Marker marker) {
-
-//      Retrieve the data from the marker.
 
         moreDetails = findViewById(R.id.more_details); // The button for more details
 
@@ -598,7 +449,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         exitDetails.setVisibility(View.INVISIBLE);
                                     }
                                 });
-                                //set the listener on the next description button
 
                             } else {
                                 Log.d("TAG", "No such document");
@@ -642,7 +492,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 });
             }
         });
-        //set the listener on the add description button
         existAddTreeDes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -661,11 +510,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         desExtra = editable.toString();
                     }
                 });
-                //set the listener on the confirm button
                 conExtraDes.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        //add a value to the arraylist
                         chosenTreeDes.add(desExtra);
                         db.collection("description").document(desID.getId()).update(mSnippet, chosenTreeDes);
                         addExtraLinear.setVisibility(View.INVISIBLE);
@@ -674,11 +521,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 });
             }
         });
-        //set the listener on the update condition button
         updateTreeCond.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // turn layout to visible
                 updateTreeConditionLinear.setVisibility(View.VISIBLE);
                 updateLinear.setVisibility(View.INVISIBLE);
                 treeCondUpdate.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -700,10 +545,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         }
                     }
                 });
-                //set the listener on the confirm button
                 confirmCondButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
+                        
                         //update the condition field of the docRef
                         db.collection("trees").document(mSnippet).update("condition", treeCondSts);
                         updateTreeConditionLinear.setVisibility(View.INVISIBLE);
@@ -713,52 +558,77 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
         //set the listener on the update the rating value based on the rating bar
         rateTree.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-        @Override
-        public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
-        //update the rating field of the docRef
-        db.collection("trees").document(mSnippet).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-        @Override
-        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-        if (task.isSuccessful()) {
-            DocumentSnapshot document = task.getResult();
-          if (document.exists()) {
-              int ourNumOfRates = document.getLong("numOfRates").intValue();
-              // update the numOfRates field
-              db.collection("trees").document(mSnippet).update("numOfRates", ourNumOfRates + 1);
-              // update the rating field
-              Log.i("TAG", "full: " + ((Math.round(v) + document.getLong("rating")) / (ourNumOfRates + 1)));
-              Log.i("TAG", "math roundV: " + Math.round(v));
-              Log.i("TAG", "ourNumOfRates: " + ourNumOfRates);
-                if (Math.round(v) == 0) {
-                    db.collection("trees").document(mSnippet).update("rating", (1 + document.getLong("rating")) / (ourNumOfRates + 1));
-                } else {
-                    db.collection("trees").document(mSnippet).update("rating", (Math.round(v) + document.getLong("rating")) / (ourNumOfRates + 1));
-                }
+            @Override
+            public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
+                //update the rating field of the docRef
+                db.collection("trees").document(mSnippet).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = task.getResult();
+                            if (document.exists()) {
+                                int ourNumOfRates = document.getLong("numOfRates").intValue();
+                                // update the numOfRates field
+                                db.collection("trees").document(mSnippet).update("numOfRates", ourNumOfRates + 1);
+                                // update the rating field
+                                Log.i("TAG", "full: " + ((Math.round(v) + document.getLong("rating")) / (ourNumOfRates + 1)));
+                                Log.i("TAG", "math roundV: " + Math.round(v));
+                                Log.i("TAG", "ourNumOfRates: " + ourNumOfRates);
+                                if (Math.round(v) == 0) {
+                                    db.collection("trees").document(mSnippet).update("rating", (1 + document.getLong("rating")) / (ourNumOfRates + 1));
+                                } else {
+                                    db.collection("trees").document(mSnippet).update("rating", (Math.round(v) + document.getLong("rating")) / (ourNumOfRates + 1));
+                                }
 
-              //TODO - fix calculation
-          } else {
-              Log.d("TAG", "No such document");
-          }
-      } else {
-          Log.d("TAG", "get failed with ", task.getException());
-                      }
-                  }
-              });
-          }
+                                //TODO - fix calculation
+                            } else {
+                                Log.d("TAG", "No such document");
+                            }
+                        } else {
+                            Log.d("TAG", "get failed with ", task.getException());
+                        }
+                    }
+                });
+            }
         });
         exitDetails.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 updateLinear.setVisibility(View.INVISIBLE);
             }
-        });//exit more details
+        });
 
         new Handler().postDelayed(() -> moreDetails.setVisibility(View.INVISIBLE), 3000);
 
         return false;
 
     }
+    private void presentMarkers() {
+        TreeServer.getAllMarkers(mMap, db, mAuth);
 
+    }
+    private void myMarkers() {
+        TreeServer.presentMyMarkers(mMap, db, mAuth);
+    }
+    private void searchMarkers(String search) {
+        db.collection("markers")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            if (document.getString("title").equals(search)) {
+                                LatLng marker = new LatLng(document.getDouble("position.latitude"), document.getDouble("position.longitude"));
+                                mMap.addMarker(new MarkerOptions().position(marker).title(document.getString("title")));
+                            }
+
+                        }
+                    } else {
+                        Log.w("TAG", "Error getting documents.", task.getException());
+                    }
+                });
+    }
+
+    // tree functions
     public void addTree(LatLng latLng) {
             Map<String, Object> tree = new HashMap<>();
             tree.put("name", addTreeName.toString());
@@ -775,7 +645,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     marker.position(latLng);
                     marker.snippet(documentReference.getId());
                     marker.title(addTreeName.toString());
-                    //marker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                     db.collection("markers").add(marker).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                         @Override
                         public void onSuccess(DocumentReference documentReference) {
@@ -797,7 +666,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                     // turn treeDes to string
                     String treeDesString;
-
                     treeDesString = treeDes.toString() + "\n by: " + googleSignInAccount.getDisplayName();
 
                     // add an array of descriptions
@@ -823,7 +691,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             });
         }
-
     public void addTreeForm(LatLng latLng) {
 
         //TODO add verify name, description and condition
@@ -892,7 +759,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         });
 
-
         exitTreeForm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -906,7 +772,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
     }
-
     private void updateTreeComp(DocumentReference docsi, int field, Object newValue) {
         //this function will update the values of the map in documentReference depending on the field number with the content of newValue
 
@@ -927,8 +792,84 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
     }
+    private Object getTreeData(Marker marker) {
+        db.collection("trees").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    for (QueryDocumentSnapshot document : task.getResult()) {
+                        if (document.getId().equals(mSnippet)) {
+                            if(document.exists()) {
+                                docRef = document.getReference();
 
-    // check if given lat lng is within 50m radius of the users current location
+                                Log.i("docRef", docRef.toString());
+                                break;
+                            }
+                        }
+                    }
+                } else {
+                    Log.d("TAG", "Error getting documents: ", task.getException());
+                }
+            }
+        });
+        return docRef;
+    }
+    private Task<QuerySnapshot> getMarkerSnippet(final Marker marker) {
+
+        return db.collection("markers").get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                for (QueryDocumentSnapshot document : task.getResult()) {
+
+                    if (marker.getPosition().latitude == document.getDouble("position.latitude") &&
+                            marker.getPosition().longitude == document.getDouble("position.longitude")) {
+                        String cur = (String) document.get("snippet");
+                        Log.i("treeid", "cur " + cur + "  " + document.getId());
+
+                        mSnippet = cur;
+                        break;
+
+                    }
+                }
+            } else {
+                Log.w("TAG", "Error getting documents.", task.getException());
+            }
+        });
+    }
+
+    // utils //
+    // update the UI to the default state
+    private void updateUI() {
+        // Initialize google sign in account
+        GoogleSignInAccount googleSignInAccount = GoogleSignIn.getLastSignedInAccount(MapsActivity.this);
+        //presentMarkers();
+        addTreeLinear = findViewById(R.id.form);
+        addTreeLinear.setVisibility(View.INVISIBLE);
+        // Check condition
+        if (googleSignInAccount != null) {
+            signedIn = true;
+
+            // When google sign in account is not null
+            // Set visibility
+            btLogout.setVisibility(View.VISIBLE);
+            btSignIn.setVisibility(View.GONE);
+
+            // change text in nav bar to user's name
+            NavigationView navigationView = findViewById(R.id.navigation_view);
+            View headerView = navigationView.getHeaderView(0);
+            TextView navUsername = (TextView) headerView.findViewById(R.id.name);
+            navUsername.setText(googleSignInAccount.getDisplayName());
+            // change text in nav bar to user's email
+            TextView navEmail = (TextView) headerView.findViewById(R.id.username);
+            navEmail.setText(googleSignInAccount.getEmail());
+
+        } else {
+            // When google sign in account is null
+            // Set visibility
+            btLogout.setVisibility(View.GONE);
+            btSignIn.setVisibility(View.VISIBLE);
+        }
+    }
+    // check if user is within the radius of the tree
     public boolean isWithinRadius(LatLng latLng) {
         Location locationA = new Location("point A");
         locationA.setLatitude(latLng.latitude);
@@ -945,10 +886,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return false;
         }
     }
-
+    // remove all markers from the map
+    private void removeMarkers() {
+        //remove all markers
+        mMap.clear();
+    }
+    // display toast message
+    private void displayToast(String s) {
+        Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
+    }
 
 }
-
-
-
-
