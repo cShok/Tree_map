@@ -2,11 +2,12 @@
 <androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/drawer_layout"
+    android:id="@+id/autumnUpdate"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@color/lighgrey"
-    tools:context=".MapsActivity">
+    tools:context=".MapsActivity"
+    tools:visibility="invisible">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -24,7 +25,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:context=".MapsActivity"
-            tools:visibility="invisible">
+            tools:visibility="gone">
 
             <Button
                 android:id="@+id/NotSigned"
@@ -138,6 +139,61 @@
             app:titleTextColor="@color/black" />
 
         <LinearLayout
+            android:id="@+id/updateTreeConditionLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="251dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="130dp"
+            android:layout_marginTop="141dp"
+            android:layout_marginEnd="112dp"
+            android:layout_marginBottom="283dp"
+            android:background="#D02020"
+            android:orientation="vertical"
+            android:visibility="invisible"
+            >
+
+            <RadioGroup
+                android:id="@+id/conditionButtons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#FFC107"
+                android:visibility="visible">
+
+                <RadioButton
+                    android:id="@+id/autumnButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="autumn" />
+
+                <RadioButton
+                    android:id="@+id/bloomButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="bloom" />
+
+                <RadioButton
+                    android:id="@+id/flowersButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="flowers" />
+
+                <RadioButton
+                    android:id="@+id/ripeButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="ripe" />
+            </RadioGroup>
+
+            <Button
+                android:id="@+id/confirmConditionButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Confirm" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/addExtraDes"
             android:layout_width="219dp"
             android:layout_height="285dp"
@@ -153,24 +209,26 @@
             android:gravity="center|center_vertical"
             android:orientation="vertical"
             android:visibility="invisible"
-            tools:visibility="visible">
+            tools:visibility="gone">
 
             <EditText
                 android:id="@+id/addExtraDesText"
                 android:layout_width="match_parent"
                 android:layout_height="141dp"
                 android:layout_weight="1"
+                android:background="@color/cardview_light_background"
                 android:ems="10"
                 android:inputType="textPersonName"
                 android:text="Name"
+                android:textColor="@color/black"
                 android:visibility="visible" />
 
             <Button
                 android:id="@+id/addExtraDesButton"
                 android:layout_width="match_parent"
-                android:layout_height="45dp"
+                android:layout_height="48dp"
                 android:minHeight="48dp"
-                android:text="ADD"
+                android:text="add the new description"
                 android:visibility="visible" />
 
         </LinearLayout>
@@ -191,7 +249,7 @@
             android:gravity="center"
             android:orientation="vertical"
             android:visibility="invisible"
-            tools:visibility="gone">
+            tools:visibility="visible">
 
 
             <TableRow
@@ -201,27 +259,25 @@
 
                 <RatingBar
                     android:id="@+id/treeRate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
+                    android:layout_width="305dp"
+                    android:layout_height="wrap_content"
                     android:numStars="5" />
 
             </TableRow>
 
             <TableRow
-                android:id="@+id/treeDeatilsRaw"
+                android:id="@+id/treeDetailsRaw"
                 android:layout_width="match_parent"
                 android:layout_height="80dp"
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/treeDetalisUpdate"
+                    android:id="@+id/treeDetailsUpdate"
                     android:layout_width="280dp"
                     android:layout_height="100dp"
                     android:layout_weight="1"
                     android:text="TextView"
                     android:textAlignment="center" />
-
             </TableRow>
 
             <TableRow
@@ -231,9 +287,9 @@
 
                 <Button
                     android:id="@+id/nextDes"
-                    android:layout_width="70dp"
-                    android:layout_height="87dp"
-                    android:layout_weight="200000"
+                    android:layout_width="wrap_content"
+                    android:layout_height="109dp"
+                    android:layout_weight="10"
                     android:text="Next "
                     app:icon="?attr/actionModeCloseDrawable"
                     app:iconPadding="0dp" />
@@ -269,7 +325,7 @@
                     android:layout_width="143dp"
                     android:layout_height="match_parent"
                     android:layout_weight="20000"
-                    android:text="Udate the tree state" />
+                    android:text="Update the tree state" />
             </TableRow>
 
             <TableRow
@@ -364,7 +420,7 @@
                 android:visibility="visible">
 
                 <RadioButton
-                    android:id="@+id/atumn"
+                    android:id="@+id/autumn"
                     android:layout_width="match_parent"
                     android:layout_height="33dp"
                     android:background="#fff"
