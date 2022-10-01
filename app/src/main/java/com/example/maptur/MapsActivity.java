@@ -67,15 +67,12 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -95,11 +92,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private Button moreDetails;
 
 
-    private LinearLayout addTreeLinear, updateLinear, addExtraLinear;
+    private LinearLayout addTreeLinear, updateLinear, addExtraLinear, updateTreeConditionLinear;
     private TextView addTreeText, addDesText, existTreeDescription, treeDetailsUpdate;
     private EditText addTreeEdit, addDesEdit, addExtraEdit;
-    private Button exitTreeForm, confirmTreeForm, exitDetails, nextDescription, updateTreeCond, existAddTreeDes, conExtraDes;
-    private RadioGroup treeCond;
+    private Button exitTreeForm, confirmTreeForm, exitDetails, nextDescription, updateTreeCond, existAddTreeDes, conExtraDes, confirmCondButton;
+    private RadioGroup treeCond, treeCondUpdate;
     Editable addTreeName, treeDes;
     private RatingBar rateTree;
     int treeCondSts, treeRating;
@@ -193,7 +190,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // navigation drawer
         MaterialToolbar toolbar = findViewById(R.id.topAppBar);
-        DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
+        DrawerLayout drawerLayout = findViewById(R.id.autumnUpdate);
         NavigationView navigationView = findViewById(R.id.navigation_view);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -516,10 +513,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 if (task.isSuccessful()) {
                     for (QueryDocumentSnapshot document : task.getResult()) {
                         if (document.getId().equals(mSnippet)) {
-                            docRef = document.getReference();
+                            if(document.exists()) {
+                                docRef = document.getReference();
 
-                            Log.i("docRef", docRef.toString());
-                            break;
+                                Log.i("docRef", docRef.toString());
+                                break;
+                            }
                         }
                     }
                 } else {
@@ -562,17 +561,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         treeDetailsUpdate = findViewById(R.id.treeDetailsUpdate);//textview
         updateLinear = findViewById(R.id.details);// The layout
-        //update
         nextDescription = findViewById(R.id.nextDes);//button
         existTreeDescription = findViewById(R.id.treeDescriptions);//textview for descriptions
         existAddTreeDes = findViewById(R.id.addDesExist);//button to add description
         updateTreeCond = findViewById(R.id.addCurrentCond);//button to update condition
-
         addExtraLinear = findViewById(R.id.addExtraDes);//linear layout to add description
         addExtraEdit = findViewById(R.id.addExtraDesText);//EditView to get the des
         conExtraDes = findViewById(R.id.addExtraDesButton); //button to confirm
 
-
+        treeCondUpdate = findViewById(R.id.conditionButtons);//radioGroup for updating condition
+        updateTreeConditionLinear = findViewById(R.id.updateTreeConditionLayout);//linear layout for updating condition
+        confirmCondButton = findViewById(R.id.confirmConditionButton);//button to confirm condition
 
         rateTree = findViewById(R.id.treeRate);// rating bar
 
@@ -597,7 +596,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         if (task.isSuccessful()) {
                             DocumentSnapshot document = task.getResult();
                             if (document.exists()) {
-                                Log.d("TAG", "DocumentSnapshot data: " + document.getData());
                                 //set the data
                                 treeDetailsUpdate.setText(document.getString("name") + "\n" +
                                         document.get("condition"));
@@ -665,8 +663,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     // cast cur[0] to array
                                     ArrayList<String> curArr = (ArrayList<String>) cur.toArray()[0];
                                     // set desToPresent to the first value in the curArr array
-                                    String desToPresent = curArr.get((int) (iDes / curArr.size()));
-                                    iDes++;
+                                    String desToPresent = curArr.get(iDes);
+                                    if(iDes == cur.size()) iDes =0;
+                                    else iDes++;
                                     existTreeDescription.setText(desToPresent);
                                     break;
                                 }
@@ -714,17 +713,73 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         updateTreeCond.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //update the tree
-                docRef.update("rate", rateTree.getRating());
+                // turn layout to visible
+                updateTreeConditionLinear.setVisibility(View.VISIBLE);
+                updateLinear.setVisibility(View.INVISIBLE);
+                treeCondUpdate.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(RadioGroup radioGroup, int i) {
+                        switch (i) {
+                            case R.id.autumnButton:
+                                treeCondSts = 0;
+                                break;
+                            case R.id.bloomButton:
+                                treeCondSts = 1;
+                                break;
+                            case R.id.flowersButton:
+                                treeCondSts = 2;
+                                break;
+                            case R.id.ripeButton:
+                                treeCondSts = 3;
+                                break;
+                        }
+                    }
+                });
+                //set the listener on the confirm button
+                confirmCondButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        //update the condition field of the docRef
+                        db.collection("trees").document(mSnippet).update("condition", treeCondSts);
+                        updateTreeConditionLinear.setVisibility(View.INVISIBLE);
+                    }
+                });
             }
         });
-        rateTree.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                treeRating = (int) rateTree.getRating();
-                // update the 4th value of the documentReference using the treeUpdate function
-                updateTreeComp(docRef, 3, treeRating);
-            }
+        //set the listener on the update the rating value based on the rating bar
+        rateTree.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+        @Override
+        public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
+        //update the rating field of the docRef
+        db.collection("trees").document(mSnippet).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+        @Override
+        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+        if (task.isSuccessful()) {
+            DocumentSnapshot document = task.getResult();
+          if (document.exists()) {
+              int ourNumOfRates = document.getLong("numOfRates").intValue();
+              // update the numOfRates field
+              db.collection("trees").document(mSnippet).update("numOfRates", ourNumOfRates + 1);
+              // update the rating field
+              Log.i("TAG", "full: " + ((Math.round(v) + document.getLong("rating")) / (ourNumOfRates + 1)));
+              Log.i("TAG", "math roundV: " + Math.round(v));
+              Log.i("TAG", "ourNumOfRates: " + ourNumOfRates);
+                if (Math.round(v) == 0) {
+                    db.collection("trees").document(mSnippet).update("rating", (1 + document.getLong("rating")) / (ourNumOfRates + 1));
+                } else {
+                    db.collection("trees").document(mSnippet).update("rating", (Math.round(v) + document.getLong("rating")) / (ourNumOfRates + 1));
+                }
+
+              //TODO - fix calculation
+          } else {
+              Log.d("TAG", "No such document");
+          }
+      } else {
+          Log.d("TAG", "get failed with ", task.getException());
+                      }
+                  }
+              });
+          }
         });
         exitDetails.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -736,13 +791,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         new Handler().postDelayed(() -> moreDetails.setVisibility(View.INVISIBLE), 3000);
 
         return false;
+
     }
 
     public void addTree(LatLng latLng) {
             Map<String, Object> tree = new HashMap<>();
             tree.put("name", addTreeName.toString());
             tree.put("condition", treeCondSts);
-            tree.put("rating", 0);
+            tree.put("rating", 3);
             tree.put("numOfRates", 0);
             db.collection("trees").add(tree).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                 @Override
@@ -753,6 +809,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     marker.position(latLng);
                     marker.snippet(documentReference.getId());
                     marker.title(addTreeName.toString());
+                    //marker.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
                     db.collection("markers").add(marker).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                         @Override
                         public void onSuccess(DocumentReference documentReference) {
