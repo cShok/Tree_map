@@ -163,6 +163,8 @@
                 android:ems="10"
                 android:inputType="textPersonName"
                 android:text="Name"
+                android:textColor="@color/black" />
+                android:background="@color/cardview_light_background"
                 android:visibility="visible" />
 
             <Button
@@ -209,13 +211,13 @@
             </TableRow>
 
             <TableRow
-                android:id="@+id/treeDeatilsRaw"
+                android:id="@+id/treeDetailsRaw"
                 android:layout_width="match_parent"
                 android:layout_height="80dp"
                 android:layout_weight="1">
 
                 <TextView
-                    android:id="@+id/treeDetalisUpdate"
+                    android:id="@+id/treeDetailsUpdate"
                     android:layout_width="280dp"
                     android:layout_height="100dp"
                     android:layout_weight="1"
@@ -269,7 +271,7 @@
                     android:layout_width="143dp"
                     android:layout_height="match_parent"
                     android:layout_weight="20000"
-                    android:text="Udate the tree state" />
+                    android:text="Update the tree state" />
             </TableRow>
 
             <TableRow
@@ -364,7 +366,7 @@
                 android:visibility="visible">
 
                 <RadioButton
-                    android:id="@+id/atumn"
+                    android:id="@+id/autumn"
                     android:layout_width="match_parent"
                     android:layout_height="33dp"
                     android:background="#fff"
