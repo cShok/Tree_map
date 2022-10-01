@@ -70,6 +70,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -505,20 +506,24 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
 
         });
-
+        new Handler().postDelayed(() -> yes.setVisibility(View.INVISIBLE), 3000);
+        new Handler().postDelayed(() -> no.setVisibility(View.INVISIBLE), 3000);
     }
 
 
 
     // this function gets the marker and returns the tree document in the collections 'trees' the matches the markers key value 'mSnipet'
-    private DocumentReference getTreeData(Marker marker) {
+    private void getTreeData(Marker marker) {
         db.collection("trees").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
                     for (QueryDocumentSnapshot document : task.getResult()) {
-                        if (document.getId().equals(marker.getSnippet())) {
+                        if (document.getId().equals(mSnippet)) {
                             docRef = document.getReference();
+
+                            Log.i("docRef", docRef.toString());
+
                         }
                     }
                 } else {
@@ -526,12 +531,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         });
-        return docRef;
+
     }
 
     private Task<QuerySnapshot> getMarkerSnippet(final Marker marker) {
 
-        return db.collection("marker").get().addOnCompleteListener(task -> {
+        return db.collection("markers").get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 for (QueryDocumentSnapshot document : task.getResult()) {
 
@@ -559,7 +564,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         exitDetails = findViewById(R.id.exitDetails);// exit button
 
-//        treeDetailsUpdate = findViewById(R.id.treeDetalisUpdate);//textview
+        treeDetailsUpdate = findViewById(R.id.treeDetailsUpdate);//textview
         updateLinear = findViewById(R.id.details);// The layout
         //update
         nextDescription = findViewById(R.id.nextDes);//button
@@ -567,44 +572,126 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         existAddTreeDes = findViewById(R.id.addDesExist);//button to add description
         updateTreeCond = findViewById(R.id.addCurrentCond);//button to update condition
 
-        addExtraLinear = findViewById(R.id.addExtraDes);//linear layout to nadd description
+        addExtraLinear = findViewById(R.id.addExtraDes);//linear layout to add description
         addExtraEdit = findViewById(R.id.addExtraDesText);//EditView to get the des
         conExtraDes = findViewById(R.id.addExtraDesButton); //button to confirm
 
         rateTree = findViewById(R.id.treeRate);// rating bar
 
         getMarkerSnippet(marker); // query to get the tree id
-        DocumentReference curTree = getTreeData(marker);
+        getTreeData(marker);
 
         moreDetails = findViewById(R.id.more_details);
         moreDetails.setVisibility(View.VISIBLE);
+        //set listener on the more details
+
+        moreDetails.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                moreDetails.setVisibility(View.INVISIBLE);
+
+                //get the tree data
+                docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @SuppressLint("SetTextI18n")
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = task.getResult();
+                            if (document.exists()) {
+                                Log.d("TAG", "DocumentSnapshot data: " + document.getData());
+                                //set the data
+                                treeDetailsUpdate.setText(document.getString("name") + "\n" +
+                                        document.get("condition"));
+                                //pull from collection 'description' the 1st value of the array only if the array title matches mSnippet
+                                db.collection("description").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                                        if (task.isSuccessful()) {
+                                            // loop through the documents - if the value matches the mSnippet then get the 1st value of the array
+                                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                                // if mSnippet matches  document.getData().keySet().toArray()[0].toString()) then get the 1st value of the array
+                                                if (mSnippet.equals(document.getData().keySet().toArray()[0].toString())) {
+                                                    //get the 1st value of the array
+                                                    String cur = (String) (document.getData().values().toArray()[0].toString());
+                                                    Log.i("doc", "cur " + cur + "  " + document.getId());
+                                                    //set the text
+                                                    existTreeDescription.setText(cur);
+                                                    //break the loop
+                                                    break;
+                                                }
+
+                                            }
+                                        } else {
+                                            Log.d("TAG", "Error getting documents: ", task.getException());
+                                        }
+                                    }
+                                });
 
 
+                                //set the rating using 'rating' field
+                                rateTree.setRating(document.getDouble("rating").floatValue());
 
-//        curMarker.addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-//            @Override
-//            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-//                Log.i("marker listner", curMarker.getResult().toString());
-//            }
-//        });
-//        curTree.addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-//            @Override
-//            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                moreDetails.setVisibility(View.VISIBLE);
+                                //set the listener on the exit button
+                                exitDetails.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        updateLinear.setVisibility(View.INVISIBLE);
+                                        exitDetails.setVisibility(View.INVISIBLE);
+                                    }
+                                });
+                                //set the listener on the next description button
 
-
-//        });
-//
-//
-//        WriteResult result = future.get();
-//        System.out.println("Write result: " + result);
-
+                            } else {
+                                Log.d("TAG", "No such document");
+                            }
+                        } else {
+                            Log.d("TAG", "get failed with ", task.getException());
+                        }
+                    }
+                });
+                updateLinear.setVisibility(View.VISIBLE);
+                exitDetails.setVisibility(View.VISIBLE);
+            }
+        });
+        nextDescription.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //existTreeDescription.setText(docRef.getString("description2"));
+                nextDescription.setVisibility(View.INVISIBLE);
+            }
+        });
+        //set the listener on the add description button
+        existAddTreeDes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                addExtraLinear.setVisibility(View.VISIBLE);
+                existAddTreeDes.setVisibility(View.INVISIBLE);
+                //set the listener on the confirm button
+                conExtraDes.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        //update the tree
+                        docRef.update("description2", addExtraEdit.getText().toString());
+                        addExtraLinear.setVisibility(View.INVISIBLE);
+                        existAddTreeDes.setVisibility(View.VISIBLE);
+                    }
+                });
+            }
+        });
+        //set the listener on the update condition button
+        updateTreeCond.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //update the tree
+                docRef.update("rate", rateTree.getRating());
+            }
+        });
         rateTree.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 treeRating = (int) rateTree.getRating();
                 // update the 4th value of the documentReference using the treeUpdate function
-                updateTreeComp(curTree, 3, treeRating);
+                updateTreeComp(docRef, 3, treeRating);
             }
         });
         exitDetails.setOnClickListener(new View.OnClickListener() {
@@ -612,44 +699,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View view) {
                 updateLinear.setVisibility(View.INVISIBLE);
             }
-        });
-//        moreDetails.setOnClickListener(new View.OnClickListener() {
-//
-//            // this function will pull the values 1,2,4 of the map 'curTree' documentReference so it can be displayed in the textview
-//            @Override
-//            public void onClick(View view) {
-//                updateLinear.setVisibility(View.VISIBLE);
-//                curTree.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-//                    @Override
-//                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-//                        if (task.isSuccessful()) {
-//                            DocumentSnapshot document = task.getResult();
-//                            if (document.exists()) {
-//                                Log.d("TAG", "DocumentSnapshot data: " + document.getData());
-//                                String treeName = (String) document.get("name");
-//                                String treeDescription = (String) document.get("description");
-//                                String treeCondition = (String) document.get("condition");
-//                                String treeRating = (String) document.get("rating");
-//                                    treeDetailsUpdate.setText(treeName + "\n" + treeDescription + "\n" + treeCondition + "\n" + treeRating + "\n" + treeExtra + "\n" + treeExtraDes + "\n" + treeExtraDes2 + "\n" + treeExtraDes3 + "\n" + treeExtraDes4 + "\n" + treeExtraDes5 + "\n" + treeExtraDes6 + "\n" + treeExtraDes7 + "\n" + treeExtraDes8 + "\n" + treeExtraDes9 + "\n" + treeExtraDes10 + "\n" + treeExtraDes11 + "\n" + treeExtraDes12 + "\n" + treeExtraDes13 + "\n" + treeExtraDes14 + "\n" + treeExtraDes15 + "\n" + treeExtraDes16 + "\n" + treeExtraDes17 + "\n" + treeExtraDes18 + "\n" + treeExtraDes19 + "\n" + treeExtraDes20 + "\n" + treeExtraDes21);
-//                                } else {
-//                                    Log.d("TAG", "No such document");
-//                                }
-//                            } else {
-//                                Log.d("TAG", "get failed with ", task.getException());
-//                            }
-//                        }
-//                    });
-//                }
-//            });
-
-
-//        nextDescription.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                iDes++;
-//                existTreeDescription.setText(desc.get(iDes / desc.size()));
-//            }
-//        });
+        });//exit more details
         existAddTreeDes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -686,10 +736,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 //                    }
 //                });
             }
-        });
-
-
-
+        });// the layout to add description
 
         new Handler().postDelayed(() -> moreDetails.setVisibility(View.INVISIBLE), 3000);
 
@@ -699,7 +746,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void addTree(LatLng latLng) {
             Map<String, Object> tree = new HashMap<>();
             tree.put("name", addTreeName.toString());
-            tree.put("description", treeDes.toString());
             tree.put("condition", treeCondSts);
             tree.put("rating", 0);
             db.collection("trees").add(tree).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
@@ -710,6 +756,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     MarkerOptions marker = new MarkerOptions();
                     marker.position(latLng);
                     marker.snippet(documentReference.getId());
+                    marker.title(addTreeName.toString());
                     db.collection("markers").add(marker).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                         @Override
                         public void onSuccess(DocumentReference documentReference) {
@@ -723,6 +770,32 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             Log.w("TAG", "Error adding document", e);
                         }
                     });
+
+                    Map<String, Object> description = new HashMap<>();
+
+                    // concatenate the description with the author name from the user sign in
+                    GoogleSignInAccount googleSignInAccount = GoogleSignIn.getLastSignedInAccount(MapsActivity.this);
+
+                    // turn treeDes to string
+                    String treeDesString;
+
+                    treeDesString = treeDes.toString() + "\n by: " + googleSignInAccount.getDisplayName();
+
+                    // add an array of descriptions
+                    description.put( documentReference.getId(), Arrays.asList(treeDesString));
+
+                    db.collection("description").add(description).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                        @Override
+                        public void onSuccess(DocumentReference documentReference) {
+                            Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            Log.w("TAG", "Error adding document", e);
+                        }
+                    });
+
                 }
             }).addOnFailureListener(new OnFailureListener() {
                 @Override
