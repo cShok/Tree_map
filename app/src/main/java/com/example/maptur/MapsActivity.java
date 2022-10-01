@@ -513,7 +513,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     // this function gets the marker and returns the tree document in the collections 'trees' the matches the markers key value 'mSnipet'
-    private void getTreeData(Marker marker) {
+    private Object getTreeData(Marker marker) {
         db.collection("trees").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -523,7 +523,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             docRef = document.getReference();
 
                             Log.i("docRef", docRef.toString());
-
+                            break;
                         }
                     }
                 } else {
@@ -531,7 +531,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         });
-
+        return docRef;
     }
 
     private Task<QuerySnapshot> getMarkerSnippet(final Marker marker) {
@@ -592,6 +592,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 //get the tree data
                 docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+
                     @SuppressLint("SetTextI18n")
                     @Override
                     public void onComplete(@NonNull Task<DocumentSnapshot> task) {
@@ -602,22 +603,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 //set the data
                                 treeDetailsUpdate.setText(document.getString("name") + "\n" +
                                         document.get("condition"));
-                                //pull from collection 'description' the 1st value of the array only if the array title matches mSnippet
                                 db.collection("description").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                                     @Override
                                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
                                         if (task.isSuccessful()) {
-                                            // loop through the documents - if the value matches the mSnippet then get the 1st value of the array
                                             for (QueryDocumentSnapshot document : task.getResult()) {
-                                                // if mSnippet matches  document.getData().keySet().toArray()[0].toString()) then get the 1st value of the array
                                                 if (mSnippet.equals(document.getData().keySet().toArray()[0].toString())) {
-                                                    //get the 1st value of the array
                                                     String cur = (String) (document.getData().values().toArray()[0].toString());
-                                                    Log.i("doc", "cur " + cur + "  " + document.getId());
-                                                    //set the text
                                                     existTreeDescription.setText(cur);
-                                                    //break the loop
                                                     break;
+                                                    // TODO set a global variable to the current description
+                                                    // TODO use a counter instead of int to get the next description
                                                 }
 
                                             }
