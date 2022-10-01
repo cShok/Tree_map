@@ -250,7 +250,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
         updateUI();
-        presentMarkers();
+        //presentMarkers();
     }
 
     @Override
@@ -360,7 +360,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void updateUI() {
         // Initialize google sign in account
         GoogleSignInAccount googleSignInAccount = GoogleSignIn.getLastSignedInAccount(MapsActivity.this);
-        presentMarkers();
+        //presentMarkers();
         addTreeLinear = findViewById(R.id.form);
         addTreeLinear.setVisibility(View.INVISIBLE);
         // Check condition
@@ -391,48 +391,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
     // small helper function
     private void presentMarkers() {
-        // pull all items in collection "markers" from firestore db
-        db.collection("markers")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            LatLng marker = new LatLng(document.getDouble("position.latitude"), document.getDouble("position.longitude"));
-                            mMap.addMarker(new MarkerOptions().position(marker).title(document.getString("title")));
-                        }
-                    } else {
-                        Log.w("TAG", "Error getting documents.", task.getException());
-                    }
-                });
+        TreeServer.getAllMarkers(mMap, db, mAuth);
 
     }
+
     // small helper function
     private void myMarkers() {
-
-        db.collection("markers")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-//                             my trees
-//                            for (QueryDocumentSnapshot document : task.getResult()) {
-//                            if (document.getString("user").equals(mAuth.getCurrentUser().getUid())) {
-//                                LatLng marker = new LatLng(document.getDouble("position.latitude"), document.getDouble("position.longitude"));
-//                                mMap.addMarker(new MarkerOptions().position(marker).title(document.getString("title")));
-//                            }
-
-                            // if lat is greater than 35.45
-                            if (document.getDouble("position.latitude") > 31.5) {
-                                LatLng marker = new LatLng(document.getDouble("position.latitude"), document.getDouble("position.longitude"));
-                                mMap.addMarker(new MarkerOptions().position(marker).title(document.getString("title")));
-
-
-                            }
-                        }
-                    } else {
-                        Log.w("TAG", "Error getting documents.", task.getException());
-                    }
-                });
+        TreeServer.presentMyMarkers(mMap, db, mAuth);
     }
     // medium helper function
     // a function that will get a string from the user and present markers on map based on that string
@@ -800,6 +765,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             tree.put("condition", treeCondSts);
             tree.put("rating", 3);
             tree.put("numOfRates", 0);
+            tree.put("creator", FirebaseAuth.getInstance().getCurrentUser().getEmail());
             db.collection("trees").add(tree).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                 @Override
                 public void onSuccess(DocumentReference documentReference) {
