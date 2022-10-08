@@ -51,15 +51,18 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.navigation.NavigationView;
+import com.google.common.net.InternetDomainName;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
+import com.google.firebase.firestore.auth.User;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -79,8 +82,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private SignInButton btSignIn;
     private Button btLogout;
 
-    private Button yes;
-    private Button no;
     private Button moreDetails;
 
     private LinearLayout addTreeLinear, updateLinear, addExtraLinear, updateTreeConditionLinear;
@@ -305,6 +306,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                                         if (task.isSuccessful()) {
                                             displayToast("You have successfully signed in");
+                                            addUserToDatabase();
                                             signedIn = true;
                                             onStart();
                                         } else {
@@ -324,6 +326,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    private void addUserToDatabase() {
+        // if user doesn't exist in database in the collection "users" then add him
+        DocumentReference docRef = db.collection("users").document(mAuth.getCurrentUser().getUid());
+        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                       //add timestamp to value 'lastLogin'
+                        Map<String, Object> lastLogin = new HashMap<>();
+                        lastLogin.put("last Login", FieldValue.serverTimestamp());
+                        db.collection("users").document(mAuth.getCurrentUser().getUid()).update(lastLogin);
+                    } else {
+                        Log.d("TAG", "No such document");
+                        Map<String, Object> user = new HashMap<>();
+                        user.put("name", mAuth.getCurrentUser().getDisplayName());
+                        user.put("email", mAuth.getCurrentUser().getEmail());
+                        user.put("last Login", FieldValue.serverTimestamp());
+                        db.collection("users").document(mAuth.getCurrentUser().getUid())
+                                .set(user)
+                                .addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        Log.d("TAG", "DocumentSnapshot successfully written!");
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.w("TAG", "Error writing document", e);
+                                    }
+                                });
+                    }
+                } else {
+                    Log.d("TAG", "get failed with ", task.getException());
+                }
+            }
+        });
+
+    }
+
     //map and marker functions
     public void onMapLongClick(LatLng latLng) {
         updateUI();
@@ -338,30 +382,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return;
         }
 
-        yes = (Button) findViewById(R.id.wantToAddTreeY);
-        no = (Button) findViewById(R.id.wantToAddTreeN);
-
-        yes.setVisibility(View.VISIBLE);
-        no.setVisibility(View.VISIBLE);
-
-        yes.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                yes.setVisibility(View.INVISIBLE);
-                no.setVisibility(View.INVISIBLE);
-                addTreeForm(latLng);
-            }
-        });
-        no.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                yes.setVisibility(View.INVISIBLE);
-                no.setVisibility(View.INVISIBLE);
-            }
-
-        });
-        new Handler().postDelayed(() -> yes.setVisibility(View.INVISIBLE), 3000);
-        new Handler().postDelayed(() -> no.setVisibility(View.INVISIBLE), 3000);
+        new AlertDialog.Builder(MapsActivity.this)
+                .setTitle("Would you like to add a tree here?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        addTreeForm(latLng);
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
     }
 
 
@@ -392,6 +422,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         moreDetails = findViewById(R.id.more_details);
         moreDetails.setVisibility(View.VISIBLE);
+
         //set listener on the more details
 
         moreDetails.setOnClickListener(new View.OnClickListener() {
@@ -868,10 +899,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
     // check if user is within the radius of the tree
-    public boolean isWithinRadius(LatLng latLng) {
+    public boolean isWithinRadius(LatLng treePos) {
         Location locationA = new Location("point A");
-        locationA.setLatitude(latLng.latitude);
-        locationA.setLongitude(latLng.longitude);
+        locationA.setLatitude(treePos.latitude);
+        locationA.setLongitude(treePos.longitude);
         LatLng usersLocation = new LatLng(mMap.getMyLocation().getLatitude(), mMap.getMyLocation().getLongitude());
         Location locationB = new Location("point B");
         locationB.setLatitude(usersLocation.latitude);
