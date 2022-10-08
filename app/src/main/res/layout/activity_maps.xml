@@ -60,23 +60,6 @@
 
                 />
 
-
-            <TextView
-                android:id="@+id/NotSignedText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/NotSigned"
-                android:layout_centerInParent="true"
-                android:layout_gravity="center"
-                android:background="@color/white"
-                android:text="please sign in first, before adding a tree"
-                android:textColor="@color/cardview_dark_background"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:visibility="invisible"
-
-                />
-
             <!--    logout-->
             <Button
                 android:id="@+id/bt_logout"

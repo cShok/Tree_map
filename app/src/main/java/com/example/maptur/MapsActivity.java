@@ -79,7 +79,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private SignInButton btSignIn;
     private Button btLogout;
 
-    private TextView notSignedText;
     private Button yes;
     private Button no;
     private Button moreDetails;
@@ -305,7 +304,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         // Check condition
 
                                         if (task.isSuccessful()) {
-                                            displayToast("Firebase authentication successful");
+                                            displayToast("You have successfully signed in");
                                             signedIn = true;
                                             onStart();
                                         } else {
@@ -330,14 +329,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         updateUI();
 
         if (!signedIn) {
-            notSignedText = (TextView) findViewById(R.id.NotSignedText);
-            notSignedText.setVisibility(View.VISIBLE);
-            new Handler().postDelayed(() -> notSignedText.setVisibility(View.INVISIBLE), 3000);
+            Toast.makeText(getApplicationContext(), "Please sign in to add a tree", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (isWithinRadius(latLng)) {
-            Toast.makeText(getApplicationContext(), "You can add a tree only in a radius of 50 meters from your current location", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "You need to be closer to the tree you want to add", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -366,6 +363,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         new Handler().postDelayed(() -> yes.setVisibility(View.INVISIBLE), 3000);
         new Handler().postDelayed(() -> no.setVisibility(View.INVISIBLE), 3000);
     }
+
+
     public boolean onMarkerClick(final Marker marker) {
 
         moreDetails = findViewById(R.id.more_details); // The button for more details
@@ -879,7 +878,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationB.setLongitude(usersLocation.longitude);
 
         float distance = locationA.distanceTo(locationB);
-        if (distance < 1) {
+        if (distance > 50) {
             return true;
         } else {
             return false;
