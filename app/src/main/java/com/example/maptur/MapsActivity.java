@@ -789,6 +789,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
     }
+
+    // these functions will be moved to TreeServer
     private Object getTreeData(Marker marker) {
         db.collection("trees").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
             @Override

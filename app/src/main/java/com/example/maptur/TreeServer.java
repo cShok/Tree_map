@@ -11,6 +11,16 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 public class TreeServer {
 
+//    1. create
+//    2. update
+//    3. read
+//    4. delete
+
+    //read
+    // we need to write a generic function that will receive map, db, user, and filtering type
+    // and return a list of trees depending on the filtering type
+    // this function will replace getAllMarkers + presentMyMarkers + searchMarkers
+
     public static void getAllMarkers(GoogleMap mMap, FirebaseFirestore db, FirebaseAuth userName) {
 
         db.collection("markers")
@@ -60,4 +70,20 @@ public class TreeServer {
                 });
 
     }
+
+    //create
+    // The function gets tree details, the marker details, db, and maybe the userName ->
+    // createTree(latlng, details, db, auth?)
+
+    //update
+    // The function gets tree details, the marker details, db, and maybe the userName ->
+    // createTree(latlng, details, db, auth?)
+
+    //delete
+    // The function gets tree details, the marker details, db, and maybe the userName ->
+    // deleteTree(latlng, details, db, auth?)
+
+    
+
+
 }
