@@ -99,6 +99,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     DocumentReference docRef, desID;
     private int iDes = 0;
     private View locationButton;
+    private String [] sts = {"Fall", "Blooming", "Flowers", "Fruits"};
 
     private Collection<Object> chosenTreeDes = new ArrayList<>();
 
@@ -440,8 +441,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             DocumentSnapshot document = task.getResult();
                             if (document.exists()) {
                                 //set the data
+
                                 treeDetailsUpdate.setText(document.getString("name") + "\n" +
-                                        document.get("condition"));
+                                        sts[(int)((long) document.get("condition"))]);
                                 db.collection("description").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                                     @Override
                                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
