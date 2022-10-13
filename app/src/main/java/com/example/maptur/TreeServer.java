@@ -2,12 +2,22 @@ package com.example.maptur;
 
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 
 public class TreeServer {
 
@@ -71,6 +81,57 @@ public class TreeServer {
 
     }
 
+    public static void createTree(LatLng latLng, Map<String, Object> tree, String treeDes, FirebaseFirestore db, FirebaseAuth userName) {
+        db.collection("trees").add(tree).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+            @Override
+            public void onSuccess(DocumentReference documentReference) {
+                Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
+                // new marker
+                MarkerOptions marker = new MarkerOptions();
+                marker.position(latLng);
+                marker.snippet(documentReference.getId());
+                marker.title((String) tree.get("name"));
+
+                db.collection("markers").add(marker).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w("TAG", "Error adding document", e);
+                    }
+                });
+
+                Map<String, Object> description = new HashMap<>();
+
+                // add an array of descriptions
+                description.put( documentReference.getId(), Arrays.asList(treeDes));
+
+                db.collection("description").add(description).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
+                    @Override
+                    public void onSuccess(DocumentReference documentReference) {
+                        TreeServer.addLog(db, userName, "Add new Tree");
+                        Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.w("TAG", "Error adding document", e);
+                    }
+                });
+
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.w("TAG", "Error adding document", e);
+            }
+        });
+
+    }
+
     //create
     // The function gets tree details, the marker details, db, and maybe the userName ->
     // createTree(latlng, details, db, auth?)
@@ -83,7 +144,11 @@ public class TreeServer {
     // The function gets tree details, the marker details, db, and maybe the userName ->
     // deleteTree(latlng, details, db, auth?)
 
-    
+    public static void addLog(FirebaseFirestore db, FirebaseAuth userName, String log){
+        Map<Object,String> dLog = new HashMap<>();
+        dLog.put(Objects.requireNonNull(userName.getCurrentUser()).getEmail(),log);
+        db.collection("Logs").add(dLog);
+    }
 
 
 }

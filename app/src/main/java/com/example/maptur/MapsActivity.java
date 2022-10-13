@@ -108,7 +108,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void onStart() {
         super.onStart();
         Log.i("onStart", "onStart called");
-        updateUI();
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -236,7 +235,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return true;
             }
         });
-        updateUI();
     }
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -275,6 +273,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         });
+        updateUI();
     }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
@@ -532,7 +531,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     }
                     @Override
                     public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
                     }
                     @Override
                     public void afterTextChanged(Editable editable) {
@@ -553,6 +551,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         updateTreeCond.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                // if user isn't signed in - show a toast 'you must be signed in to update the tree' and return
+                if (signedIn == false) {
+                    Toast.makeText(MapsActivity.this, "You must be signed in to update the tree", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 updateTreeConditionLinear.setVisibility(View.VISIBLE);
                 updateLinear.setVisibility(View.INVISIBLE);
                 treeCondUpdate.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -589,35 +592,41 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         rateTree.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
             @Override
             public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
-                //update the rating field of the docRef
-                db.collection("trees").document(mSnippet).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
-                            if (document.exists()) {
-                                int ourNumOfRates = document.getLong("numOfRates").intValue();
-                                // update the numOfRates field
-                                db.collection("trees").document(mSnippet).update("numOfRates", ourNumOfRates + 1);
-                                // update the rating field
-                                Log.i("TAG", "full: " + ((Math.round(v) + document.getLong("rating")) / (ourNumOfRates + 1)));
-                                Log.i("TAG", "math roundV: " + Math.round(v));
-                                Log.i("TAG", "ourNumOfRates: " + ourNumOfRates);
-                                if (Math.round(v) == 0) {
-                                    db.collection("trees").document(mSnippet).update("rating", (1 + document.getLong("rating")) / (ourNumOfRates + 1));
-                                } else {
-                                    db.collection("trees").document(mSnippet).update("rating", (Math.round(v) + document.getLong("rating")) / (ourNumOfRates + 1));
-                                }
+                if (signedIn == false) {
+                    Toast.makeText(MapsActivity.this, "You must be signed in to update the tree rating", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                else {
+                    //update the rating field of the docRef
+                    db.collection("trees").document(mSnippet).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                DocumentSnapshot document = task.getResult();
+                                if (document.exists()) {
+                                    int ourNumOfRates = document.getLong("numOfRates").intValue();
+                                    // update the numOfRates field
+                                    db.collection("trees").document(mSnippet).update("numOfRates", ourNumOfRates + 1);
+                                    // update the rating field
+                                    Log.i("TAG", "full: " + ((Math.round(v) + document.getLong("rating")) / (ourNumOfRates + 1)));
+                                    Log.i("TAG", "math roundV: " + Math.round(v));
+                                    Log.i("TAG", "ourNumOfRates: " + ourNumOfRates);
+                                    if (Math.round(v) == 0) {
+                                        db.collection("trees").document(mSnippet).update("rating", (1 + document.getLong("rating")) / (ourNumOfRates + 1));
+                                    } else {
+                                        db.collection("trees").document(mSnippet).update("rating", (Math.round(v) + document.getLong("rating")) / (ourNumOfRates + 1));
+                                    }
 
-                                //TODO - fix calculation
+                                    //TODO - fix calculation
+                                } else {
+                                    Log.d("TAG", "No such document");
+                                }
                             } else {
-                                Log.d("TAG", "No such document");
+                                Log.d("TAG", "get failed with ", task.getException());
                             }
-                        } else {
-                            Log.d("TAG", "get failed with ", task.getException());
                         }
-                    }
-                });
+                    });
+                }
             }
         });
         exitDetails.setOnClickListener(new View.OnClickListener() {
@@ -665,60 +674,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         tree.put("rating", 3);
         tree.put("numOfRates", 0);
         tree.put("creator", FirebaseAuth.getInstance().getCurrentUser().getEmail());
-        db.collection("trees").add(tree).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-            @Override
-            public void onSuccess(DocumentReference documentReference) {
-                Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
-                // new marker
-                MarkerOptions marker = new MarkerOptions();
-                marker.position(latLng);
-                marker.snippet(documentReference.getId());
-                marker.title(addTreeName.toString());
-                db.collection("markers").add(marker).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
-                        addTreeLinear.setVisibility(View.INVISIBLE);
-                        updateUI();
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w("TAG", "Error adding document", e);
-                    }
-                });
 
-                Map<String, Object> description = new HashMap<>();
+        TreeServer.createTree(latLng, tree, treeDes.toString(), db, mAuth);
 
-                // concatenate the description with the author name from the user sign in
-                GoogleSignInAccount googleSignInAccount = GoogleSignIn.getLastSignedInAccount(MapsActivity.this);
+        addTreeLinear.setVisibility(View.INVISIBLE);
+        Toast.makeText(MapsActivity.this, "Adding your tree...", Toast.LENGTH_SHORT).show();
+        new Handler().postDelayed(() -> updateUI(), 3000);
 
-                // turn treeDes to string
-                String treeDesString;
-                treeDesString = treeDes.toString() + "\n by: " + googleSignInAccount.getDisplayName();
-
-                // add an array of descriptions
-                description.put( documentReference.getId(), Arrays.asList(treeDesString));
-
-                db.collection("description").add(description).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w("TAG", "Error adding document", e);
-                    }
-                });
-
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.w("TAG", "Error adding document", e);
-            }
-        });
     }
     public void addTreeForm(LatLng latLng) {
 
@@ -899,6 +861,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             btLogout.setVisibility(View.GONE);
             btSignIn.setVisibility(View.VISIBLE);
         }
+        TreeServer.getAllMarkers(mMap, db, mAuth);
+
     }
     // check if user is within the radius of the tree
     public boolean isWithinRadius(LatLng treePos) {
@@ -926,5 +890,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void displayToast(String s) {
         Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
     }
+
 
 }
