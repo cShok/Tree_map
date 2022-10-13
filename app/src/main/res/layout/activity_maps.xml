@@ -80,6 +80,22 @@
 
         </fragment>
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/deleteTree"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="60dp"
+            android:layout_marginEnd="50dp"
+            android:layout_marginBottom="16dp"
+            android:background="@color/white"
+            android:clickable="false"
+            android:text="Delete Tree"
+            android:textColor="@color/black"
+            android:visibility="invisible"
+            app:cornerRadius="10dp" />
+
         <ImageView
             android:id="@+id/ic_location"
             android:layout_width="36dp"

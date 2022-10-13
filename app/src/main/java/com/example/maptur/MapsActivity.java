@@ -88,7 +88,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LinearLayout addTreeLinear, updateLinear, addExtraLinear, updateTreeConditionLinear;
     private TextView addTreeText, addDesText, existTreeDescription, treeDetailsUpdate;
     private EditText addTreeEdit, addDesEdit, addExtraEdit;
-    private Button exitTreeForm, confirmTreeForm, exitDetails, nextDescription, updateTreeCond, existAddTreeDes, conExtraDes, confirmCondButton;
+    private Button exitTreeForm, confirmTreeForm, exitDetails, nextDescription, updateTreeCond, existAddTreeDes, conExtraDes, confirmCondButton, delTreeButton;
     private RadioGroup treeCond, treeCondUpdate;
     Editable addTreeName, treeDes;
     private RatingBar rateTree;
@@ -408,7 +408,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         moreDetails = findViewById(R.id.more_details); // The button for more details
 
         exitDetails = findViewById(R.id.exitDetails);// exit button
-
+        delTreeButton = findViewById(R.id.deleteTree);// delete button
         treeDetailsUpdate = findViewById(R.id.treeDetailsUpdate);//textview
         updateLinear = findViewById(R.id.details);// The layout
         nextDescription = findViewById(R.id.nextDes);//button
@@ -437,6 +437,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         exitDetails.setVisibility(View.VISIBLE);
         //set listener on the more details
 
+        delTreeButton.setVisibility(View.VISIBLE);
+        delTreeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new AlertDialog.Builder(MapsActivity.this)
+                        .setTitle("Are you sure you want to delete this tree?")
+                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                delTreeButton.setVisibility(View.INVISIBLE);
+                                TreeServer.deleteTree(db, marker.getPosition());
+                                moreDetails.setVisibility(View.INVISIBLE);
+                                //hold the function for a 3000 ms till updateUI is ready
+                                //delete the marker from the map
+                                marker.remove();
+                                updateUI();
+
+                            }
+                        })
+                        .setNegativeButton("No", null)
+                        .show();
+            }
+        });
         moreDetails.setOnClickListener(new View.OnClickListener() {
 
 
@@ -634,9 +657,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
         new Handler().postDelayed(() -> moreDetails.setVisibility(View.INVISIBLE), 3000);
-
+        new Handler().postDelayed(() -> delTreeButton.setVisibility(View.INVISIBLE), 3000);
         return false;
 
+    }
+
+    private void afterDelete() {
+        updateUI();
     }
 
 
