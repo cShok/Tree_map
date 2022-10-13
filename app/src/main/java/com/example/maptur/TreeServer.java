@@ -9,6 +9,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 public class TreeServer {
 
 //    1. create
@@ -71,10 +75,15 @@ public class TreeServer {
 
     }
 
+
     //create
     // The function gets tree details, the marker details, db, and maybe the userName ->
     // createTree(latlng, details, db, auth?)
-
+    public static void addLog(FirebaseFirestore db, FirebaseAuth userName, String log){
+        Map<Object,String> dLog = new HashMap<>();
+        dLog.put(Objects.requireNonNull(userName.getCurrentUser()).getEmail(),log);
+        db.collection("Logs").add(dLog);
+    }
     //update
     // The function gets tree details, the marker details, db, and maybe the userName ->
     // createTree(latlng, details, db, auth?)
