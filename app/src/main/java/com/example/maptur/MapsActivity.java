@@ -436,63 +436,68 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         moreDetails.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new Handler().postDelayed(() ->   docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                ArrayList<Object> tmp = new ArrayList<>();
+                tmp.add(0,4);
+                tmp.add(1, marker.getPosition().latitude);
+                tmp.add(2, marker.getPosition().longitude);
+                TreeServer.getMarkers(mMap,db,mAuth, tmp);
+//                new Handler().postDelayed(() ->   docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+//
+//                    @SuppressLint("SetTextI18n")
+//                    @Override
+//                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+//                        if (task.isSuccessful()) {
+//                            DocumentSnapshot document = task.getResult();
+//                            if (document.exists()) {
+//                                //set the data
+//
+//                                treeDetailsUpdate.setText(document.getString("name") + "\n" +
+//                                         document.getString("condition") + "\n" );
+//                                db.collection("description").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+//                                    @Override
+//                                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
+//                                        if (task.isSuccessful()) {
+//                                            for (QueryDocumentSnapshot document : task.getResult()) {
+//                                                if (mSnippet.equals(document.getData().keySet().toArray()[0].toString())) {
+//                                                    desID = document.getReference();
+//                                                    // save to value cur only the first value in the array
+//                                                    Collection<Object> cur = (document.getData().values());
+//                                                    // cast cur[0] to array
+//                                                    ArrayList<String> curArr = (ArrayList<String>) cur.toArray()[0];
+//                                                    // set desToPresent to the first value in the curArr array
+//                                                    String desToPresent = curArr.get(0).toString();
+//                                                    existTreeDescription.setText(desToPresent);
+//                                                    break;
+//                                                }
+//
+//                                            }
+//                                        } else {
+//                                            Log.d("TAG", "Error getting documents: ", task.getException());
+//                                        }
+//                                    }
+//                                });
+//
+//                                //set the rating using 'rating' field
+//                                rateTree.setRating(document.getDouble("rating").floatValue());
+//                                //set the listener on the exit button
+//                                exitDetails.setOnClickListener(new View.OnClickListener() {
+//                                    @Override
+//                                    public void onClick(View view) {
+//                                        updateLinear.setVisibility(View.INVISIBLE);
+//                                        exitDetails.setVisibility(View.INVISIBLE);
+//                                    }
+//                                });
+//
+//                            } else {
+//                                Log.d("TAG", "No such document");
+//                            }
+//                        } else {
+//                            Log.d("TAG", "get failed with ", task.getException());
+//                        }
+//                    }
+//                }), 3000);
 
-                    @SuppressLint("SetTextI18n")
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
-                            if (document.exists()) {
-                                //set the data
-
-                                treeDetailsUpdate.setText(document.getString("name") + "\n" +
-                                         document.getString("condition") + "\n" );
-                                db.collection("description").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                                        if (task.isSuccessful()) {
-                                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                                if (mSnippet.equals(document.getData().keySet().toArray()[0].toString())) {
-                                                    desID = document.getReference();
-                                                    // save to value cur only the first value in the array
-                                                    Collection<Object> cur = (document.getData().values());
-                                                    // cast cur[0] to array
-                                                    ArrayList<String> curArr = (ArrayList<String>) cur.toArray()[0];
-                                                    // set desToPresent to the first value in the curArr array
-                                                    String desToPresent = curArr.get(0).toString();
-                                                    existTreeDescription.setText(desToPresent);
-                                                    break;
-                                                }
-
-                                            }
-                                        } else {
-                                            Log.d("TAG", "Error getting documents: ", task.getException());
-                                        }
-                                    }
-                                });
-
-                                //set the rating using 'rating' field
-                                rateTree.setRating(document.getDouble("rating").floatValue());
-                                //set the listener on the exit button
-                                exitDetails.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View view) {
-                                        updateLinear.setVisibility(View.INVISIBLE);
-                                        exitDetails.setVisibility(View.INVISIBLE);
-                                    }
-                                });
-
-                            } else {
-                                Log.d("TAG", "No such document");
-                            }
-                        } else {
-                            Log.d("TAG", "get failed with ", task.getException());
-                        }
-                    }
-                }), 3000);
-
-
+                Log.i("filter1", tmp.toString());
                 //get the tree data
 
                 updateLinear.setVisibility(View.VISIBLE);

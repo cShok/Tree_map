@@ -87,6 +87,28 @@ public class TreeServer {
                                                 }
                                             });
                                     break;
+                                case 4:
+                                    // return treeData of the tree where documnet1 'position' equal to filter.get(1)
+                                    db.collection("trees")
+                                            .get()
+                                            .addOnCompleteListener(task2 -> {
+                                                if (task2.isSuccessful()) {
+                                                    for (QueryDocumentSnapshot document2 : task2.getResult()) {
+                                                        if (Objects.equals(document2.getId(), document1.getString("snippet")) &&
+                                                                Objects.equals(document1.getDouble("position.latitude"), filter.get(1)) &&
+                                                                Objects.equals(document1.getDouble("position.longitude"), filter.get(2)) ) {
+                                                                filter.add(1, document2.getData());
+                                                                Log.i("server filter", filter.toString());
+                                                                break;
+                                                        }
+                                                    }
+
+                                                } else {
+                                                    Log.d("TAG", "Error getting documents: ", task2.getException());
+                                                }
+                                            });
+
+
                             }
                         }
                     } else {
