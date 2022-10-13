@@ -91,11 +91,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private RadioGroup treeCond, treeCondUpdate;
     Editable addTreeName, treeDes;
     private RatingBar rateTree;
-    int treeCondSts, treeRating;
+    String treeCondSts = "";
     private Map<String, Object> markersMap = new HashMap<>();
     private Map<String, Object> gTreeData = new HashMap<>();
 
-    private String mSnippet, desExtra = " ";
+    private String mSnippet, desExtra = " ", treeType = "";
     DocumentReference docRef, desID;
     private int iDes = 0;
     private View locationButton;
@@ -188,54 +188,62 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull @org.jetbrains.annotations.NotNull MenuItem item) {
-                EditText input = null;
+
 
 
                 int id = item.getItemId();
                 drawerLayout.closeDrawer(GravityCompat.START);
+                removeMarkers();
+                ArrayList <Object> filters = new ArrayList<>();
                 switch (id) {
                     case R.id.nav_all_trees:
+                        filters.add(0, 0);
                         Toast.makeText(getApplicationContext(), "All trees", Toast.LENGTH_SHORT).show();
-                        presentMarkers();
                         break;
                     case R.id.nav_my_trees:
                         Toast.makeText(MapsActivity.this, "Showing your trees", Toast.LENGTH_SHORT).show();
-                        removeMarkers();
-                        myMarkers();
+                        filters.add(0, 1);
                         break;
                     case R.id.fruit_now:
-
                         Toast.makeText(MapsActivity.this, "Tree that have fruit on them", Toast.LENGTH_SHORT).show();
-
+                        filters.add(0, 3);
                         break;
                     //present markers based on users input
                     case R.id.tree_type:
-                        input = new EditText(MapsActivity.this);
-                        input.setHint("Apple, Pear, Cherry, etc.");
-                        EditText finalInput = input;
-                        new AlertDialog.Builder(MapsActivity.this)
-                                .setTitle("Enter tree type")
-                                .setView(input)
-                                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                    @Override
-                                    public void onClick(DialogInterface dialog, int which) {
-                                        String treeType = finalInput.getText().toString();
-                                        removeMarkers();
-                                        searchMarkers(treeType);
-                                    }
-                                })
-                                .setNegativeButton("Cancel", null)
-                                .show();
-                        Toast.makeText(MapsActivity.this, "Showing the trees you chose", Toast.LENGTH_SHORT).show();
+                        getFilterType();
+                        filters.add(0, 2);
+                        filters.add(1, treeType);
                         break;
-
                     default:
                         return true;
                 }
+                Log.i("filters", filters.toString());
+                TreeServer.getMarkers(mMap, db, mAuth, filters);
                 return true;
             }
         });
     }
+
+    private void getFilterType() {
+
+        EditText input = new EditText(MapsActivity.this);
+        input.setHint("Apple, Pear, Cherry, etc.");
+        EditText finalInput = input;
+        new AlertDialog.Builder(MapsActivity.this)
+                .setTitle("Enter tree type")
+                .setView(input)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        treeType = finalInput.getText().toString();
+                        return;
+                    }
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+        Toast.makeText(MapsActivity.this, "Showing the trees you chose", Toast.LENGTH_SHORT).show();
+    }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
@@ -428,10 +436,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         moreDetails.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                moreDetails.setVisibility(View.INVISIBLE);
-
-                //get the tree data
-                docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                new Handler().postDelayed(() ->   docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
 
                     @SuppressLint("SetTextI18n")
                     @Override
@@ -442,7 +447,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                 //set the data
 
                                 treeDetailsUpdate.setText(document.getString("name") + "\n" +
-                                        sts[(int)((long) document.get("condition"))]);
+                                         document.getString("condition") + "\n" );
                                 db.collection("description").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                                     @Override
                                     public void onComplete(@NonNull Task<QuerySnapshot> task) {
@@ -485,7 +490,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             Log.d("TAG", "get failed with ", task.getException());
                         }
                     }
-                });
+                }), 3000);
+
+
+                //get the tree data
+
                 updateLinear.setVisibility(View.VISIBLE);
                 exitDetails.setVisibility(View.VISIBLE);
             }
@@ -563,16 +572,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     public void onCheckedChanged(RadioGroup radioGroup, int i) {
                         switch (i) {
                             case R.id.autumnButton:
-                                treeCondSts = 0;
+                                treeCondSts = "Autumn";
                                 break;
                             case R.id.bloomButton:
-                                treeCondSts = 1;
+                                treeCondSts = "Bloom";
                                 break;
                             case R.id.flowersButton:
-                                treeCondSts = 2;
+                                treeCondSts = "Flowers";
                                 break;
                             case R.id.ripeButton:
-                                treeCondSts = 3;
+                                treeCondSts = "Ripe";
                                 break;
                         }
                     }
@@ -643,8 +652,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
     private void presentMarkers() {
         TreeServer.getAllMarkers(mMap, db, mAuth);
-
     }
+
     private void myMarkers() {
         TreeServer.presentMyMarkers(mMap, db, mAuth);
     }
@@ -733,17 +742,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onCheckedChanged(RadioGroup radioGroup, int i) {
                 switch (i) {
                     case R.id.winter:
-                        treeCondSts = 0;
+                        treeCondSts = "Autumn";
                         break;
                     case R.id.spring:
-                        treeCondSts = 1;
+                        treeCondSts = "Flowers";
                         break;
 
                     case R.id.summer:
-                        treeCondSts = 2;
+                        treeCondSts =  "Ripe";
                         break;
                     case R.id.autumn:
-                        treeCondSts = 3;
+                        treeCondSts = "Bloom";
                         break;
                 }
             }
@@ -834,7 +843,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void updateUI() {
         // Initialize google sign in account
         GoogleSignInAccount googleSignInAccount = GoogleSignIn.getLastSignedInAccount(MapsActivity.this);
-        //presentMarkers();
+        //
         addTreeLinear = findViewById(R.id.form);
         addTreeLinear.setVisibility(View.INVISIBLE);
         // Check condition
@@ -861,7 +870,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             btLogout.setVisibility(View.GONE);
             btSignIn.setVisibility(View.VISIBLE);
         }
-        TreeServer.getAllMarkers(mMap, db, mAuth);
+        // initialize array list object with 0,1
+        ArrayList<Object> treeData = new ArrayList<>();
+        treeData.add(0);
+
+        TreeServer.getMarkers(mMap, db, mAuth, treeData);
 
     }
     // check if user is within the radius of the tree
