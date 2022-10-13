@@ -65,11 +65,14 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.auth.User;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -101,7 +104,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private int iDes = 0, numOfRatings = 1, totalRating =3;
     private View locationButton;
 
-    private Collection<Object> chosenTreeDes = new ArrayList<>();
+    private Map<String,String> chosenTreeDes = new HashMap<>();
 
     //general functions
     @Override
@@ -517,8 +520,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                             DocumentSnapshot document = task.getResult();
                             if (document.exists()) {
                                 //set the data
-
-                                existTreeDescription.setText(document.get("des").toString());
+                               chosenTreeDes =  (HashMap<String,String>)(document.get("des"));
+                                for (Object str : chosenTreeDes.entrySet().toArray()) {
+                                    existTreeDescription.setText(str.toString());
+                                    break;
+                                }
                             } else {
                                 Log.d("TAG", "No such document");
                             }
@@ -580,8 +586,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 conExtraDes.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-                        chosenTreeDes.add(desExtra);
-                        db.collection("description").document(desID.getId()).update(mSnippet, chosenTreeDes);
+
+                        chosenTreeDes.put(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()) ,desExtra);
+                        TreeServer.updateTree(db , (DocumentReference) tmp.get(1), 2, chosenTreeDes);
+
+//                            chosenTreeDes.add(desExtra);
+//                        db.collection("description").document(desID.getId()).update(mSnippet, chosenTreeDes);
                         addExtraLinear.setVisibility(View.INVISIBLE);
                         existAddTreeDes.setVisibility(View.VISIBLE);
                     }
@@ -788,6 +798,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
         return docRef;
     }
+
     private Task<QuerySnapshot> getMarkerSnippet(final Marker marker) {
 
         return db.collection("markers").get().addOnCompleteListener(task -> {

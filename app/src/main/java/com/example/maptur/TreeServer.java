@@ -16,10 +16,12 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class TreeServer {
     static boolean found = false;
@@ -188,8 +190,11 @@ public class TreeServer {
                 Map<String, Object> description = new HashMap<>();
 
                 // add an array of descriptions
+
                 description.put( "TreeId", documentReference.getId());
-                description.put( "des", treeDes);
+                Map<String,String> desCol = new HashMap<>();
+                desCol.put(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()), treeDes);
+                description.put( "des",desCol);
 
                 db.collection("description").add(description).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
@@ -234,6 +239,7 @@ public class TreeServer {
 
                 break;
             case 2: // update the description
+                docR.update("des", obj);
                 break;
         }
     }
