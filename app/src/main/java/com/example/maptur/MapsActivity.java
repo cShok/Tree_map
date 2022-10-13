@@ -101,7 +101,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private String mSnippet, desExtra = " ", treeType = "";
     DocumentReference docRef, desID;
-    private int iDes = 0, numOfRatings = 1, totalRating =3;
+    private int iDes = 0, numOfRatings = 1, totalRating =3, gDes = 0;
     private View locationButton;
 
     private Map<String,String> chosenTreeDes = new HashMap<>();
@@ -540,32 +540,16 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View view) {
                 // loop through all the values in the array, when get to the last value, set the text to the first value
-                db.collection("description").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                if (mSnippet.equals(document.getData().keySet().toArray()[0].toString())) {
-                                    desID = document.getReference();
-                                    // save to value cur only the first value in the array
-                                    Collection<Object> cur = (document.getData().values());
-                                    // cast cur[0] to array
-                                    ArrayList<String> curArr = (ArrayList<String>) cur.toArray()[0];
-                                    // set desToPresent to the first value in the curArr array
-                                    String desToPresent = curArr.get(iDes);
-                                    if(iDes == cur.size()) iDes =0;
-                                    else iDes++;
-                                    existTreeDescription.setText(desToPresent);
-                                    break;
-                                }
-                            }
-                        } else {
-                            Log.d("TAG", "Error getting documents: ", task.getException());
-                        }
-                    }
-                });
-            }
-        });
+                Object [] tmp = chosenTreeDes.entrySet().toArray();
+
+                int maxDes = chosenTreeDes.entrySet().toArray().length;
+                if(gDes >= maxDes) gDes =0;
+                existTreeDescription.setText(tmp[gDes].toString());
+                gDes++;
+
+
+        }});
+
         existAddTreeDes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
