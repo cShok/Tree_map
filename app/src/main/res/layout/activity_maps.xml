@@ -266,6 +266,7 @@
                     android:layout_gravity="center"
                     android:layout_weight="1"
                     android:singleLine="false"
+                    android:textSize="20dp"
                     android:textAlignment="center"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:visibility="visible" />

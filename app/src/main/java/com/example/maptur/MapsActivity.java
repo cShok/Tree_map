@@ -98,7 +98,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private String mSnippet, desExtra = " ", treeType = "";
     DocumentReference docRef, desID;
-    private int iDes = 0;
+    private int iDes = 0, numOfRatings = 1, totalRating =3;
     private View locationButton;
 
     private Collection<Object> chosenTreeDes = new ArrayList<>();
@@ -430,19 +430,26 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         ArrayList<Object> tmp = new ArrayList<>();
         LatLng ll = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
         TreeServer.getTreeData(mMap,db,mAuth, ll,tmp);
-        TreeServer.getTreeDes(mMap,db,mAuth, ll,tmp);
-        moreDetails = findViewById(R.id.more_details);
-        moreDetails.setVisibility(View.VISIBLE);
 
+        moreDetails = findViewById(R.id.more_details);
+        rateTree.setIsIndicator(true);
+        moreDetails.setVisibility(View.VISIBLE);
+        exitDetails.setVisibility(View.VISIBLE);
         //set listener on the more details
 
         moreDetails.setOnClickListener(new View.OnClickListener() {
+
+
             @Override
             public void onClick(View view) {
+                //unlock rateTree  rating bar
+
                 new Handler().postDelayed(() -> tmp.get(0), 3000);
                 new Handler().postDelayed(() -> tmp.get(1), 3000);
                 DocumentReference docRefTree = (DocumentReference) tmp.get(0);
                 DocumentReference docRefDes = (DocumentReference) tmp.get(1);
+                Log.i("docRefTree", docRefTree.toString());
+                Log.i("docRefDes", docRefDes.toString());
                 Toast.makeText(getApplicationContext(), "Loading Tree Data...", Toast.LENGTH_SHORT).show();
                 new Handler().postDelayed(() ->   docRefTree.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
 
@@ -458,6 +465,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         document.getString("condition") + "\n");
                                 //set the rating using 'rating' field
                                 rateTree.setRating(document.getDouble("rating").floatValue());
+                                rateTree.setIsIndicator(false);
+                                numOfRatings = document.getDouble("numOfRates").intValue();
+                                totalRating = document.getDouble("rating").intValue();
                                 //set the listener on the exit button
                                 exitDetails.setOnClickListener(new View.OnClickListener() {
                                     @Override
@@ -587,55 +597,35 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 confirmCondButton.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
-
+                        //use upadate method in TresServer to update the tree condition
+                        TreeServer.updateTree(db, (DocumentReference) tmp.get(0), 1, treeCondSts);
                         //update the condition field of the docRef
-                        db.collection("trees").document(mSnippet).update("condition", treeCondSts);
+//                        db.collection("trees").document(mSnippet).update("condition", treeCondSts);
                         updateTreeConditionLinear.setVisibility(View.INVISIBLE);
                     }
                 });
             }
         });
-        //set the listener on the update the rating value based on the rating bar
-//        rateTree.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-//            @Override
-//            public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
-//                if (signedIn == false) {
-//                    Toast.makeText(MapsActivity.this, "You must be signed in to update the tree rating", Toast.LENGTH_SHORT).show();
-//                    return;
-//                }
-//                else {
-//                    //update the rating field of the docRef
-//                    db.collection("trees").document(mSnippet).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-//                        @Override
-//                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-//                            if (task.isSuccessful()) {
-//                                DocumentSnapshot document = task.getResult();
-//                                if (document.exists()) {
-//                                    int ourNumOfRates = document.getLong("numOfRates").intValue();
-//                                    // update the numOfRates field
-//                                    db.collection("trees").document(mSnippet).update("numOfRates", ourNumOfRates + 1);
-//                                    // update the rating field
-//                                    Log.i("TAG", "full: " + ((Math.round(v) + document.getLong("rating")) / (ourNumOfRates + 1)));
-//                                    Log.i("TAG", "math roundV: " + Math.round(v));
-//                                    Log.i("TAG", "ourNumOfRates: " + ourNumOfRates);
-//                                    if (Math.round(v) == 0) {
-//                                        db.collection("trees").document(mSnippet).update("rating", (1 + document.getLong("rating")) / (ourNumOfRates + 1));
-//                                    } else {
-//                                        db.collection("trees").document(mSnippet).update("rating", (Math.round(v) + document.getLong("rating")) / (ourNumOfRates + 1));
-//                                    }
-//
-//                                    //TODO - fix calculation
-//                                } else {
-//                                    Log.d("TAG", "No such document");
-//                                }
-//                            } else {
-//                                Log.d("TAG", "get failed with ", task.getException());
-//                            }
-//                        }
-//                    });
-//                }
-//            }
-//        });
+//        set the listener on the update the rating value based on the rating bar
+        rateTree.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+            @Override
+            public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
+                if (signedIn == false) {
+                    Toast.makeText(MapsActivity.this, "You must be signed in to update the tree rating", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                else {
+                    ArrayList<Object>  tmp1= new ArrayList<>();
+                    tmp1.add((int)v);
+                    tmp1.add(1, numOfRatings);
+                    tmp1.add(2, totalRating);
+                    TreeServer.updateTree(db, (DocumentReference) tmp.get(0), 0, tmp1 );
+                    //lock the rating bar
+                    rateTree.setIsIndicator(true);
+                }
+            }
+        });
+
         exitDetails.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -656,7 +646,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         tree.put("name", addTreeName.toString());
         tree.put("condition", treeCondSts);
         tree.put("rating", 3);
-        tree.put("numOfRates", 0);
+        tree.put("numOfRates", 1);
         tree.put("creator", FirebaseAuth.getInstance().getCurrentUser().getEmail());
 
         TreeServer.createTree(latLng, tree, treeDes.toString(), db, mAuth);

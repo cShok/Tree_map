@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class TreeServer {
-
+    static boolean found = false;
  public DocumentReference gDoc;
 //    1. create
 //    2. update
@@ -33,35 +33,7 @@ public class TreeServer {
     // we need to write a generic function that will receive map, db, user, and filtering type
     // and return a list of trees depending on the filtering type
     // this function will replace getAllMarkers + presentMyMarkers + searchMarkers
-    public static void getTreeDes(GoogleMap mMap, FirebaseFirestore db, FirebaseAuth userName, LatLng latLng, ArrayList<Object> docr){
-        db.collection("trees").get()
-                .addOnCompleteListener(task1 -> {
-                            if (task1.isSuccessful()) {
-                                for (QueryDocumentSnapshot document1 : task1.getResult()) {
-                                        db.collection("description")
-                                                .get()
-                                                .addOnCompleteListener(task2 -> {
-                                                    if (task2.isSuccessful()) {
-                                                        for (QueryDocumentSnapshot document2 : task2.getResult()) {
-                                                            Log.i("des", docr.toString());
-                                                            if (Objects.equals(document2.getString("TreeId"), document1.getId())) {
-                                                                docr.add(1, document2.getReference());
-                                                                Log.i("docr5", docr.toString());
-                                                                break;
-                                                            }
-                                                        }
 
-                                                    } else {
-                                                        Log.d("TAG", "Error getting documents: ", task2.getException());
-                                                    }
-                                                });
-                                    }
-
-                                }
-
-                        }
-                );
-    }
     public static void getTreeData(GoogleMap mMap, FirebaseFirestore db, FirebaseAuth userName, LatLng latLng, ArrayList<Object> docr){
         db.collection("markers").get()
                 .addOnCompleteListener(task1 -> {
@@ -77,7 +49,23 @@ public class TreeServer {
                                                 for (QueryDocumentSnapshot document2 : task2.getResult()) {
                                                     if (Objects.equals(document2.getId(), document1.getString("snippet"))) {
                                                         docr.add(0, document2.getReference());
+                                                        db.collection("description")
+                                                                .get()
+                                                                .addOnCompleteListener(task3 -> {
+                                                                    if (task2.isSuccessful()) {
+                                                                        for (QueryDocumentSnapshot document3 : task3.getResult()) {
+                                                                            if (document3.getString("TreeId").equals(document2.getId())) {
+                                                                                docr.add(1, document3.getReference());
+                                                                                Log.i("docr5", docr.toString());
+                                                                                return;
+                                                                            }
+                                                                        }
 
+                                                                    } else {
+                                                                        Log.d("TAG", "Error getting documents: ", task2.getException());
+                                                                    }
+
+                                                                });
                                                         break;
 
                                                     }
@@ -226,11 +214,59 @@ public class TreeServer {
 
     }
 
+    public static void updateTree(FirebaseFirestore db ,DocumentReference docR, int filter, Object obj){
+        switch (filter){
+            case 0: // update the rating in the 'tree' collection
+                int rating = (int) ((ArrayList<Object>)obj).get(0);
+                int numOfRatings = (int) ((ArrayList<Object>)obj).get(1);;
+                int totalRating = (int) ((ArrayList<Object>)obj).get(2);
+                //calculate the new rating
+                Log.i("TAG", "updateTree: " + rating + " " + numOfRatings + " " + totalRating);
+                int newRating = (int)(totalRating + rating *numOfRatings) / (numOfRatings + 1) ;
+                docR.update("rating",  newRating);
+                numOfRatings++;
+                docR.update("numOfRates", numOfRatings);
+                Log.i("TAG", "updateTreeAfter: " + rating + " " + numOfRatings + " " + totalRating +" " + newRating);
+
+                break;
+            case 1: // update the Condition in the 'tree' collection
+                docR.update("condition", (String)obj);
+
+                break;
+            case 2: // update the description
+                break;
+        }
+    }
     public static void addLog(FirebaseFirestore db, FirebaseAuth userName, String log){
         Map<Object,String> dLog = new HashMap<>();
         dLog.put(userName.getCurrentUser().getEmail(), new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()) + " | " + log);
         db.collection("Logs").add(dLog);
     }
 
-
+    //delete tree marker and description based on LatLng
+    public static void deleteTree(FirebaseFirestore db, LatLng latLng){
+        db.collection("markers")
+                .whereEqualTo("position.latitude", latLng.latitude)
+                .whereEqualTo("position.longitude", latLng.longitude)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            db.collection("markers").document(document.getId()).delete();
+                            db.collection("trees").document(document.getString("snippet")).delete();
+                            db.collection("description").whereEqualTo("TreeId", document.getString("snippet")).get().addOnCompleteListener(task1 -> {
+                                if (task1.isSuccessful()) {
+                                    for (QueryDocumentSnapshot document1 : task1.getResult()) {
+                                        db.collection("description").document(document1.getId()).delete();
+                                    }
+                                } else {
+                                    Log.w("TAG", "Error getting documents.", task1.getException());
+                                }
+                            });
+                        }
+                    } else {
+                        Log.w("TAG", "Error getting documents.", task.getException());
+                    }
+                });
+    }
 }
