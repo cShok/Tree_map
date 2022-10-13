@@ -255,7 +255,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         }
 
-        LatLng Jerusalem = new LatLng(31.7683, 35.2137);
+        LatLng Jerusalem = new LatLng(31.780768889465804, 35.21472375890298);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(Jerusalem));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(50000));
         mMap.setOnMarkerClickListener(this::onMarkerClick);//marker pushed
@@ -311,12 +311,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                     @Override
                                     public void onComplete(@NonNull Task<AuthResult> task) {
                                         // Check condition
-
                                         if (task.isSuccessful()) {
                                             displayToast("You have successfully signed in");
                                             addUserToDatabase();
                                             signedIn = true;
                                             onStart();
+                                            updateUI();
                                         } else {
                                             // When task is unsuccessful
                                             // Display Toast

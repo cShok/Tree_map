@@ -27,7 +27,8 @@
             tools:context=".MapsActivity"
             tools:visibility="gone">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
+                app:cornerRadius="10dp"
                 android:id="@+id/NotSigned"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -36,32 +37,9 @@
                 />
 
 
-            <Button
-                android:id="@+id/wantToAddTreeY"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="left|center"
-                android:layout_marginTop="100dp"
-                android:padding="10dp"
-                android:paddingRight="50dp"
-                android:text="yes"
-                android:visibility="invisible" />
-
-            <Button
-                android:id="@+id/wantToAddTreeN"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="right|center"
-                android:layout_marginTop="100dp"
-                android:padding="10dp"
-                android:paddingLeft="50dp"
-                android:text="no"
-                android:visibility="invisible"
-
-                />
-
             <!--    logout-->
-            <Button
+            <com.google.android.material.button.MaterialButton
+                app:cornerRadius="5dp"
                 android:id="@+id/bt_logout"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -70,11 +48,12 @@
                 android:layout_marginEnd="50dp"
                 android:layout_marginBottom="16dp"
                 android:background="@color/white"
-                android:text="@string/logout"
                 android:textColor="@color/black"
-                android:visibility="invisible" />
+                android:text="@string/logout" />
 
-            <Button
+
+            <com.google.android.material.button.MaterialButton
+                app:cornerRadius="10dp"
                 android:id="@+id/more_details"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -124,7 +103,7 @@
         <LinearLayout
             android:id="@+id/updateTreeConditionLayout"
             android:layout_width="wrap_content"
-            android:layout_height="251dp"
+            android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_alignParentEnd="true"
             android:layout_alignParentBottom="true"
@@ -132,10 +111,10 @@
             android:layout_marginTop="141dp"
             android:layout_marginEnd="112dp"
             android:layout_marginBottom="283dp"
-            android:background="#D02020"
+            android:background="#FFC107"
             android:orientation="vertical"
             android:visibility="invisible"
-            >
+            tools:visibility="visible">
 
             <RadioGroup
                 android:id="@+id/conditionButtons"
@@ -148,28 +127,29 @@
                     android:id="@+id/autumnButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="autumn" />
+                    android:text="Autumn" />
 
                 <RadioButton
                     android:id="@+id/bloomButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="bloom" />
+                    android:text="Bloom" />
 
                 <RadioButton
                     android:id="@+id/flowersButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="flowers" />
+                    android:text="Flowers" />
 
                 <RadioButton
                     android:id="@+id/ripeButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="ripe" />
+                    android:text="Ripe" />
             </RadioGroup>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
+                app:cornerRadius="10dp"
                 android:id="@+id/confirmConditionButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -192,7 +172,7 @@
             android:gravity="center|center_vertical"
             android:orientation="vertical"
             android:visibility="invisible"
-            tools:visibility="gone">
+            tools:visibility="visible">
 
             <EditText
                 android:id="@+id/addExtraDesText"
@@ -206,7 +186,8 @@
                 android:textColor="@color/black"
                 android:visibility="visible" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
+                app:cornerRadius="10dp"
                 android:id="@+id/addExtraDesButton"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
@@ -268,23 +249,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="60dp">
 
-                <Button
+                <com.google.android.material.button.MaterialButton
+                    app:cornerRadius="10dp"
                     android:id="@+id/nextDes"
                     android:layout_width="wrap_content"
-                    android:layout_height="109dp"
+                    android:layout_height="45dp"
                     android:layout_weight="10"
-                    android:text="Next "
+                    android:text="Next"
                     app:icon="?attr/actionModeCloseDrawable"
                     app:iconPadding="0dp" />
 
                 <TextView
                     android:id="@+id/treeDescriptions"
-                    android:layout_width="267dp"
+                    android:layout_width="200dp"
                     android:layout_height="137dp"
                     android:layout_gravity="center"
                     android:layout_weight="1"
                     android:singleLine="false"
-                    android:text="Tree Des {trees}"
                     android:textAlignment="center"
                     android:textAppearance="?android:attr/textAppearanceLarge"
                     android:visibility="visible" />
@@ -292,30 +273,31 @@
             </TableRow>
 
             <TableRow
-                android:layout_width="match_parent"
                 android:layout_height="38dp"
                 android:layout_weight="1">
 
-                <Button
+                <com.google.android.material.button.MaterialButton
+                    app:cornerRadius="10dp"
                     android:id="@+id/addDesExist"
-                    android:layout_width="63dp"
-                    android:layout_height="match_parent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
                     android:layout_weight="20000"
-                    android:text="add Des" />
+                    android:text="add description" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
+                    app:cornerRadius="10dp"
                     android:id="@+id/addCurrentCond"
-                    android:layout_width="143dp"
-                    android:layout_height="match_parent"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_weight="20000"
-                    android:text="Update the tree state" />
+                    android:text="update the tree state" />
             </TableRow>
 
             <TableRow
                 android:layout_width="429dp"
                 android:layout_height="30dp">
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/exitDetails"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -343,15 +325,8 @@
             android:gravity="center"
             android:orientation="vertical"
             android:visibility="invisible"
-            tools:visibility="gone">
+            tools:visibility="visible">
 
-            <Button
-                android:id="@+id/exitForm"
-                android:layout_width="match_parent"
-                android:layout_height="7dp"
-                android:layout_weight="1"
-                android:text="Cancel"
-                android:visibility="visible" />
 
             <TextView
                 android:id="@+id/treeNameText"
@@ -390,7 +365,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="3dp"
                 android:layout_weight="1"
-                android:hint="small descritipn"
+                android:hint="short description"
                 android:inputType="textNoSuggestions"
                 android:singleLine="true"
                 android:visibility="visible" />
@@ -406,7 +381,7 @@
                     android:id="@+id/autumn"
                     android:layout_width="match_parent"
                     android:layout_height="33dp"
-                    android:background="#fff"
+                    android:background="#434141"
                     android:text="Brrrrrr"
                     android:visibility="visible" />
 
@@ -414,7 +389,7 @@
                     android:id="@+id/winter"
                     android:layout_width="match_parent"
                     android:layout_height="36dp"
-                    android:background="#ff2"
+                    android:background="#FFC107"
                     android:text="Blooming"
                     android:visibility="visible" />
 
@@ -436,12 +411,21 @@
                     app:buttonTint="#FBF6F6" />
             </RadioGroup>
 
-            <Button
+            <com.google.android.material.button.MaterialButton
+                app:cornerRadius="10dp"
                 android:id="@+id/confirmTree"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="3dp"
                 android:layout_weight="1"
                 android:text="Add Tree" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/exitForm"
+                android:layout_width="wrap_content"
+                android:layout_height="7dp"
+                android:layout_weight="1"
+                android:text="Cancel"
+                android:visibility="visible" />
 
         </LinearLayout>
 

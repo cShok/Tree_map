@@ -14,8 +14,9 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -205,7 +206,7 @@ public class TreeServer {
                 db.collection("description").add(description).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
-                        addLog(db, userName, "Add new Tree");
+                        addLog(db, userName, "Added a new Tree: " + tree.get("name"));
                         Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
                     }
                 }).addOnFailureListener(new OnFailureListener() {
@@ -225,10 +226,9 @@ public class TreeServer {
 
     }
 
-
     public static void addLog(FirebaseFirestore db, FirebaseAuth userName, String log){
         Map<Object,String> dLog = new HashMap<>();
-        dLog.put(Objects.requireNonNull(userName.getCurrentUser()).getEmail(),log);
+        dLog.put(userName.getCurrentUser().getEmail(), new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()) + " | " + log);
         db.collection("Logs").add(dLog);
     }
 
