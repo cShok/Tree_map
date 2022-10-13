@@ -184,7 +184,7 @@
             android:layout_marginTop="213dp"
             android:layout_marginEnd="69dp"
             android:layout_marginBottom="105dp"
-            android:background="#BD1212"
+            android:background="#E7E3E3"
             android:gravity="center|center_vertical"
             android:orientation="vertical"
             android:visibility="invisible"
@@ -193,12 +193,12 @@
             <EditText
                 android:id="@+id/addExtraDesText"
                 android:layout_width="match_parent"
-                android:layout_height="141dp"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@color/cardview_light_background"
                 android:ems="10"
                 android:inputType="textPersonName"
-                android:text="Name"
+                android:text=""
                 android:textColor="@color/black"
                 android:visibility="visible" />
 
@@ -208,7 +208,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
                 android:minHeight="48dp"
-                android:text="add the new description"
+                android:text="add new description"
                 android:visibility="visible" />
 
         </LinearLayout>
@@ -361,7 +361,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="6dp"
                 android:layout_weight="1"
-                android:hint="tree name"
+                android:hint="Chocolate tree"
                 android:inputType="textNoSuggestions"
                 android:singleLine="true"
                 android:visibility="visible" />
@@ -373,7 +373,7 @@
                 android:layout_gravity="center"
                 android:layout_weight="1"
                 android:singleLine="false"
-                android:text="Add small description"
+                android:text="Add short description"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:visibility="visible" />
 
@@ -382,7 +382,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="3dp"
                 android:layout_weight="1"
-                android:hint="short description"
+                android:hint="Young tree with a lot of potential"
                 android:inputType="textNoSuggestions"
                 android:singleLine="true"
                 android:visibility="visible" />
@@ -399,7 +399,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="33dp"
                     android:background="#434141"
-                    android:text="Brrrrrr"
+                    android:text="Autumn"
                     android:visibility="visible" />
 
                 <RadioButton
