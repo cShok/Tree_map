@@ -699,10 +699,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
                 // add an array of descriptions
                 description.put( documentReference.getId(), Arrays.asList(treeDesString));
-
                 db.collection("description").add(description).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
+                        TreeServer.addLog(db, mAuth, "Add new Tree");
                         Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
                     }
                 }).addOnFailureListener(new OnFailureListener() {
