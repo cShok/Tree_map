@@ -650,30 +650,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         return false;
 
     }
-    private void presentMarkers() {
-        TreeServer.getAllMarkers(mMap, db, mAuth);
-    }
 
-    private void myMarkers() {
-        TreeServer.presentMyMarkers(mMap, db, mAuth);
-    }
-    private void searchMarkers(String search) {
-        db.collection("markers")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            if (document.getString("title").equals(search)) {
-                                LatLng marker = new LatLng(document.getDouble("position.latitude"), document.getDouble("position.longitude"));
-                                mMap.addMarker(new MarkerOptions().position(marker).title(document.getString("title")));
-                            }
-
-                        }
-                    } else {
-                        Log.w("TAG", "Error getting documents.", task.getException());
-                    }
-                });
-    }
 
     // tree functions
     public void addTree(LatLng latLng) {
@@ -771,26 +748,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 addTree(latLng);
             }
         });
-    }
-    private void updateTreeComp(DocumentReference docsi, int field, Object newValue) {
-        //this function will update the values of the map in documentReference depending on the field number with the content of newValue
-
-        docsi.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        Map<String, Object> tree = document.getData();
-                        ArrayList<Object> treeData = (ArrayList<Object>) tree.get("treeData");
-                        treeData.set(field, newValue);
-                        tree.put("treeData", treeData);
-                        docsi.set(tree);
-                    }
-                }
-            }
-        });
-
     }
 
     // these functions will be moved to TreeServer
