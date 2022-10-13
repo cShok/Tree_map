@@ -4,6 +4,7 @@ package com.example.maptur;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -99,7 +100,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     DocumentReference docRef, desID;
     private int iDes = 0;
     private View locationButton;
-    private String [] sts = {"Fall", "Blooming", "Flowers", "Fruits"};
 
     private Collection<Object> chosenTreeDes = new ArrayList<>();
 
@@ -425,9 +425,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         rateTree = findViewById(R.id.treeRate);// rating bar
 
-        getMarkerSnippet(marker); // query to get the tree id
-        getTreeData(marker);
-
+//        getMarkerSnippet(marker); // query to get the tree id
+//        getTreeData(marker);
+        ArrayList<Object> tmp = new ArrayList<>();
+        LatLng ll = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
+        TreeServer.getTreeData(mMap,db,mAuth, ll,tmp);
+        TreeServer.getTreeDes(mMap,db,mAuth, ll,tmp);
         moreDetails = findViewById(R.id.more_details);
         moreDetails.setVisibility(View.VISIBLE);
 
@@ -436,72 +439,62 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         moreDetails.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ArrayList<Object> tmp = new ArrayList<>();
-                tmp.add(0,4);
-                tmp.add(1, marker.getPosition().latitude);
-                tmp.add(2, marker.getPosition().longitude);
-                TreeServer.getMarkers(mMap,db,mAuth, tmp);
-//                new Handler().postDelayed(() ->   docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-//
-//                    @SuppressLint("SetTextI18n")
-//                    @Override
-//                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-//                        if (task.isSuccessful()) {
-//                            DocumentSnapshot document = task.getResult();
-//                            if (document.exists()) {
-//                                //set the data
-//
-//                                treeDetailsUpdate.setText(document.getString("name") + "\n" +
-//                                         document.getString("condition") + "\n" );
-//                                db.collection("description").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-//                                    @Override
-//                                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-//                                        if (task.isSuccessful()) {
-//                                            for (QueryDocumentSnapshot document : task.getResult()) {
-//                                                if (mSnippet.equals(document.getData().keySet().toArray()[0].toString())) {
-//                                                    desID = document.getReference();
-//                                                    // save to value cur only the first value in the array
-//                                                    Collection<Object> cur = (document.getData().values());
-//                                                    // cast cur[0] to array
-//                                                    ArrayList<String> curArr = (ArrayList<String>) cur.toArray()[0];
-//                                                    // set desToPresent to the first value in the curArr array
-//                                                    String desToPresent = curArr.get(0).toString();
-//                                                    existTreeDescription.setText(desToPresent);
-//                                                    break;
-//                                                }
-//
-//                                            }
-//                                        } else {
-//                                            Log.d("TAG", "Error getting documents: ", task.getException());
-//                                        }
-//                                    }
-//                                });
-//
-//                                //set the rating using 'rating' field
-//                                rateTree.setRating(document.getDouble("rating").floatValue());
-//                                //set the listener on the exit button
-//                                exitDetails.setOnClickListener(new View.OnClickListener() {
-//                                    @Override
-//                                    public void onClick(View view) {
-//                                        updateLinear.setVisibility(View.INVISIBLE);
-//                                        exitDetails.setVisibility(View.INVISIBLE);
-//                                    }
-//                                });
-//
-//                            } else {
-//                                Log.d("TAG", "No such document");
-//                            }
-//                        } else {
-//                            Log.d("TAG", "get failed with ", task.getException());
-//                        }
-//                    }
-//                }), 3000);
+                new Handler().postDelayed(() -> tmp.get(0), 3000);
+                new Handler().postDelayed(() -> tmp.get(1), 3000);
+                DocumentReference docRefTree = (DocumentReference) tmp.get(0);
+                DocumentReference docRefDes = (DocumentReference) tmp.get(1);
+                Toast.makeText(getApplicationContext(), "Loading Tree Data...", Toast.LENGTH_SHORT).show();
+                new Handler().postDelayed(() ->   docRefTree.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
 
-                Log.i("filter1", tmp.toString());
-                //get the tree data
+                    @SuppressLint("SetTextI18n")
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = task.getResult();
+                            if (document.exists()) {
+                                //set the data
 
-                updateLinear.setVisibility(View.VISIBLE);
-                exitDetails.setVisibility(View.VISIBLE);
+                                treeDetailsUpdate.setText(document.getString("name") + "\n" +
+                                        document.getString("condition") + "\n");
+                                //set the rating using 'rating' field
+                                rateTree.setRating(document.getDouble("rating").floatValue());
+                                //set the listener on the exit button
+                                exitDetails.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        updateLinear.setVisibility(View.INVISIBLE);
+                                        exitDetails.setVisibility(View.INVISIBLE);
+                                    }
+                                });
+
+                            } else {
+                                Log.d("TAG", "No such document");
+                            }
+                        } else {
+                            Log.d("TAG", "get failed with ", task.getException());
+                        }
+                    }
+                }), 3000);
+                new Handler().postDelayed(() ->   docRefDes.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+
+                    @SuppressLint("SetTextI18n")
+                    @Override
+                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = task.getResult();
+                            if (document.exists()) {
+                                //set the data
+
+                                existTreeDescription.setText(document.get("des").toString());
+                            } else {
+                                Log.d("TAG", "No such document");
+                            }
+                        } else {
+                            Log.d("TAG", "get failed with ", task.getException());
+                        }
+                    }
+                }), 3000);
+                new Handler().postDelayed(() -> updateLinear.setVisibility(View.VISIBLE), 3000);
             }
         });
         nextDescription.setOnClickListener(new View.OnClickListener() {
@@ -603,46 +596,46 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
         //set the listener on the update the rating value based on the rating bar
-        rateTree.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-            @Override
-            public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
-                if (signedIn == false) {
-                    Toast.makeText(MapsActivity.this, "You must be signed in to update the tree rating", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                else {
-                    //update the rating field of the docRef
-                    db.collection("trees").document(mSnippet).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                            if (task.isSuccessful()) {
-                                DocumentSnapshot document = task.getResult();
-                                if (document.exists()) {
-                                    int ourNumOfRates = document.getLong("numOfRates").intValue();
-                                    // update the numOfRates field
-                                    db.collection("trees").document(mSnippet).update("numOfRates", ourNumOfRates + 1);
-                                    // update the rating field
-                                    Log.i("TAG", "full: " + ((Math.round(v) + document.getLong("rating")) / (ourNumOfRates + 1)));
-                                    Log.i("TAG", "math roundV: " + Math.round(v));
-                                    Log.i("TAG", "ourNumOfRates: " + ourNumOfRates);
-                                    if (Math.round(v) == 0) {
-                                        db.collection("trees").document(mSnippet).update("rating", (1 + document.getLong("rating")) / (ourNumOfRates + 1));
-                                    } else {
-                                        db.collection("trees").document(mSnippet).update("rating", (Math.round(v) + document.getLong("rating")) / (ourNumOfRates + 1));
-                                    }
-
-                                    //TODO - fix calculation
-                                } else {
-                                    Log.d("TAG", "No such document");
-                                }
-                            } else {
-                                Log.d("TAG", "get failed with ", task.getException());
-                            }
-                        }
-                    });
-                }
-            }
-        });
+//        rateTree.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+//            @Override
+//            public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
+//                if (signedIn == false) {
+//                    Toast.makeText(MapsActivity.this, "You must be signed in to update the tree rating", Toast.LENGTH_SHORT).show();
+//                    return;
+//                }
+//                else {
+//                    //update the rating field of the docRef
+//                    db.collection("trees").document(mSnippet).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+//                        @Override
+//                        public void onComplete(@NonNull Task<DocumentSnapshot> task) {
+//                            if (task.isSuccessful()) {
+//                                DocumentSnapshot document = task.getResult();
+//                                if (document.exists()) {
+//                                    int ourNumOfRates = document.getLong("numOfRates").intValue();
+//                                    // update the numOfRates field
+//                                    db.collection("trees").document(mSnippet).update("numOfRates", ourNumOfRates + 1);
+//                                    // update the rating field
+//                                    Log.i("TAG", "full: " + ((Math.round(v) + document.getLong("rating")) / (ourNumOfRates + 1)));
+//                                    Log.i("TAG", "math roundV: " + Math.round(v));
+//                                    Log.i("TAG", "ourNumOfRates: " + ourNumOfRates);
+//                                    if (Math.round(v) == 0) {
+//                                        db.collection("trees").document(mSnippet).update("rating", (1 + document.getLong("rating")) / (ourNumOfRates + 1));
+//                                    } else {
+//                                        db.collection("trees").document(mSnippet).update("rating", (Math.round(v) + document.getLong("rating")) / (ourNumOfRates + 1));
+//                                    }
+//
+//                                    //TODO - fix calculation
+//                                } else {
+//                                    Log.d("TAG", "No such document");
+//                                }
+//                            } else {
+//                                Log.d("TAG", "get failed with ", task.getException());
+//                            }
+//                        }
+//                    });
+//                }
+//            }
+//        });
         exitDetails.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
