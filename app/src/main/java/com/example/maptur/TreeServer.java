@@ -281,8 +281,15 @@ public class TreeServer {
     // logging //
     // this function is a generic utility that adds a log to the 'logs' collection with a timestamp
     public static void addLog(FirebaseFirestore db, FirebaseAuth userName, String log) {
+
+
+        // if user is null - username = "guest"
+        String username = "guest";
+        if ( userName != null && userName.getCurrentUser() != null) {
+            username = userName.getCurrentUser().getEmail();
+        }
         Map<Object, String> dLog = new HashMap<>();
-        dLog.put(userName.getCurrentUser().getEmail(), new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()) + " | " + log);
+        dLog.put(username, new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()) + " | " + log);
         db.collection("Logs").add(dLog);
     }
 

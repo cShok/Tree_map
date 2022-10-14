@@ -4,7 +4,6 @@ package com.example.maptur;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -45,14 +44,12 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.navigation.NavigationView;
-import com.google.common.net.InternetDomainName;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
@@ -61,18 +58,12 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.auth.User;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -80,31 +71,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ActivityMapsBinding binding;
     private FirebaseAuth mAuth;
 
-    FirebaseFirestore db;
+    private FirebaseFirestore db;
+
+    private int numOfRatings = 1, totalRating = 3, gDes = 0;
     private boolean signedIn;
+    private String desExtra = " ", treeType = "", treeCondSts = "";
     private GoogleSignInClient googleSignInClient;
     private SignInButton btSignIn;
-    private Button btLogout;
-
-    private Button moreDetails;
-
     private LinearLayout addTreeLinear, updateLinear, addExtraLinear, updateTreeConditionLinear;
     private TextView addTreeText, addDesText, existTreeDescription, treeDetailsUpdate;
     private EditText addTreeEdit, addDesEdit, addExtraEdit;
-    private Button exitTreeForm, confirmTreeForm, exitDetails, nextDescription, updateTreeCond, existAddTreeDes, conExtraDes, confirmCondButton, delTreeButton;
+    private Button exitTreeForm, confirmTreeForm, exitDetails, nextDescription, updateTreeCond,
+            existAddTreeDes, conExtraDes, confirmCondButton, delTreeButton, btLogout, moreDetails;
     private RadioGroup treeCond, treeCondUpdate;
-    Editable addTreeName, treeDes;
+    private Editable addTreeName, treeDes;
     private RatingBar rateTree;
-    String treeCondSts = "";
-    private Map<String, Object> markersMap = new HashMap<>();
-    private Map<String, Object> gTreeData = new HashMap<>();
-
-    private String mSnippet, desExtra = " ", treeType = "";
-    DocumentReference docRef, desID;
-    private int iDes = 0, numOfRatings = 1, totalRating =3, gDes = 0;
     private View locationButton;
-
-    private Map<String,String> chosenTreeDes = new HashMap<>();
+    private Map<String, String> chosenTreeDes = new HashMap<>();
 
     //general functions
     @Override
@@ -192,8 +175,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public boolean onNavigationItemSelected(@NonNull @org.jetbrains.annotations.NotNull MenuItem item) {
 
-
-
                 int id = item.getItemId();
                 drawerLayout.closeDrawer(GravityCompat.START);
                 removeMarkers();
@@ -227,25 +208,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    private void getFilterType() {
-
-        EditText input = new EditText(MapsActivity.this);
-        input.setHint("Apple, Pear, Cherry, etc.");
-        EditText finalInput = input;
-        new AlertDialog.Builder(MapsActivity.this)
-                .setTitle("Enter tree type")
-                .setView(input)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        treeType = finalInput.getText().toString();
-                        return;
-                    }
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-        Toast.makeText(MapsActivity.this, "Showing the trees you chose", Toast.LENGTH_SHORT).show();
-    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -653,11 +615,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    private void afterDelete() {
-        updateUI();
-    }
-
-
     // tree functions
     public void addTree(LatLng latLng) {
         Map<String, Object> tree = new HashMap<>();
@@ -755,54 +712,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
     }
+    private void getFilterType() {
 
-    // these functions will be moved to TreeServer
-    private Object getTreeData(Marker marker) {
-        db.collection("trees").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    for (QueryDocumentSnapshot document : task.getResult()) {
-                        if (document.getId().equals(mSnippet)) {
-                            if(document.exists()) {
-                                docRef = document.getReference();
-
-                                Log.i("docRef", docRef.toString());
-                                break;
-                            }
-                        }
+        EditText input = new EditText(MapsActivity.this);
+        input.setHint("Apple, Pear, Cherry, etc.");
+        EditText finalInput = input;
+        new AlertDialog.Builder(MapsActivity.this)
+                .setTitle("Enter tree type")
+                .setView(input)
+                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        treeType = finalInput.getText().toString();
+                        return;
                     }
-                } else {
-                    Log.d("TAG", "Error getting documents: ", task.getException());
-                }
-            }
-        });
-        return docRef;
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+        Toast.makeText(MapsActivity.this, "Showing the trees you chose", Toast.LENGTH_SHORT).show();
     }
 
-    private Task<QuerySnapshot> getMarkerSnippet(final Marker marker) {
-
-        return db.collection("markers").get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                for (QueryDocumentSnapshot document : task.getResult()) {
-
-                    if (marker.getPosition().latitude == document.getDouble("position.latitude") &&
-                            marker.getPosition().longitude == document.getDouble("position.longitude")) {
-                        String cur = (String) document.get("snippet");
-                        Log.i("treeid", "cur " + cur + "  " + document.getId());
-
-                        mSnippet = cur;
-                        break;
-
-                    }
-                }
-            } else {
-                Log.w("TAG", "Error getting documents.", task.getException());
-            }
-        });
-    }
 
     // utils //
+
     // update the UI to the default state
     private void updateUI() {
         // Initialize google sign in account
@@ -867,6 +799,5 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private void displayToast(String s) {
         Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
     }
-
 
 }
