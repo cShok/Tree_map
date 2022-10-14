@@ -282,7 +282,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         // Check condition
                                         if (task.isSuccessful()) {
                                             displayToast("You have successfully signed in");
+                                            //add the user to the database or update the user login
                                             TreeServer.createUser(db, mAuth);
+                                            // global var to control the user activity who demands authentication
                                             signedIn = true;
                                             onStart();
                                             updateUI();
@@ -328,7 +330,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .setNegativeButton("No", null)
                 .show();
     }
-
 
     public boolean onMarkerClick(final Marker marker) {
 
@@ -462,10 +463,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View view) {
                 // loop through all the values in the array, when get to the last value, set the text to the first value
-                Object [] tmp = chosenTreeDes.entrySet().toArray();
+                Object [] desArray = chosenTreeDes.entrySet().toArray();
                 int maxDes = chosenTreeDes.entrySet().toArray().length;
                 if(gDes >= maxDes) gDes =0;
-                existTreeDescription.setText(tmp[gDes].toString());
+                existTreeDescription.setText(desArray[gDes].toString());
                 gDes++;
         }});
 
@@ -546,16 +547,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         rateTree.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
             @Override
             public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
+
+                //Update only available for signed in users
                 if (signedIn == false) {
                     Toast.makeText(MapsActivity.this, "You must be signed in to update the tree rating", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 else {
-                    ArrayList<Object>  tmp1= new ArrayList<>();
-                    tmp1.add((int)v);
-                    tmp1.add(1, numOfRatings);
-                    tmp1.add(2, totalRating);
-                    TreeServer.updateTree(db, (DocumentReference) docRefList.get(0), 0, tmp1, mAuth);
+                    ArrayList<Object>  ratingAtrr= new ArrayList<>();
+                    ratingAtrr.add((int)v); // user's rating
+                    ratingAtrr.add(1, numOfRatings);// number of ratings by all users
+                    ratingAtrr.add(2, totalRating);// total rating score
+                    // Update the rating in the server
+                    TreeServer.updateTree(db, (DocumentReference) docRefList.get(0), 0, ratingAtrr, mAuth);
                     //lock the rating bar
                     rateTree.setIsIndicator(true);
                 }
