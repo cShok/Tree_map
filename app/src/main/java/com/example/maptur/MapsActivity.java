@@ -608,7 +608,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //get the new tree information from user and call addTree function
     public void addTreeForm(LatLng latLng) {
 
-        //TODO add verify name, description and condition
         addTreeLinear = findViewById(R.id.form);
         addTreeText = findViewById(R.id.treeNameText);
         addTreeEdit = findViewById(R.id.treeNameEdit);
