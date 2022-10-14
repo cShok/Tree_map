@@ -310,26 +310,30 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     //map and marker functions//
 
-    // when user long clicks on the map, add a new tree to the database, using user input and location as
-    // parameter for the tree marker and description
+    // when user long clicks on the map, add a new tree to the database, using location as
+    // parameter for the marker, calls addTreeForm if succeeded.
     public void onMapLongClick(LatLng latLng) {
-        updateUI();
 
+        updateUI();
+        // user has to be sign-in to add trees
         if (!signedIn) {
             Toast.makeText(getApplicationContext(), "Please sign in to add a tree", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        //user need to be around the pace he sees the tree
         if (isWithinRadius(latLng)) {
             Toast.makeText(getApplicationContext(), "You need to be closer to the tree you want to add", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        //confirm addition
         new AlertDialog.Builder(MapsActivity.this)
                 .setTitle("Would you like to add a tree here?")
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        //calls the GUI to get user input
                         addTreeForm(latLng);
                     }
                 })
@@ -337,7 +341,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .show();
     }
 
-    // when user clicks on a marker, show the tree data and offer to update the tree data
+    // main function to gt the tree data and description when user clicks on a marker, show the tree data and offer to update the tree data
+    // delete option as well.
     public boolean onMarkerClick(final Marker marker) {
 
         moreDetails = findViewById(R.id.more_details); // The button for more details
@@ -357,22 +362,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         treeCondUpdate = findViewById(R.id.conditionButtons);//radioGroup for updating condition
         updateTreeConditionLinear = findViewById(R.id.updateTreeConditionLayout);//linear layout for updating condition
         confirmCondButton = findViewById(R.id.confirmConditionButton);//button to confirm condition
-
+        moreDetails = findViewById(R.id.more_details);
         rateTree = findViewById(R.id.treeRate);// rating bar
 
-//        getMarkerSnippet(marker); // query to get the tree id
-//        getTreeData(marker);
-        ArrayList<Object> docRefList = new ArrayList<>();
+        ArrayList<Object> docRefList = new ArrayList<>();// Hold the Document reference to the tree and description
         LatLng treeLocation = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
+        // get the data from server
         TreeServer.getTreeData(db, treeLocation, docRefList, mAuth);
 
-        moreDetails = findViewById(R.id.more_details);
-        rateTree.setIsIndicator(true);
+
+        rateTree.setIsIndicator(true);//lock rating until GUI ready
+
         moreDetails.setVisibility(View.VISIBLE);
         exitDetails.setVisibility(View.VISIBLE);
-        //set listener on the more details
-
+        
         delTreeButton.setVisibility(View.VISIBLE);
+
+        //delete option
         delTreeButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -395,18 +401,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         .show();
             }
         });
+
+        //main component to handke GUI
         moreDetails.setOnClickListener(new View.OnClickListener() {
-
-
             @Override
             public void onClick(View view) {
-                //unlock rateTree  rating bar
 
+                //Gets the tree data via Document Reference
                 new Handler().postDelayed(() -> docRefList.get(0), 3000);
                 new Handler().postDelayed(() -> docRefList.get(1), 3000);
                 DocumentReference docRefTree = (DocumentReference) docRefList.get(0);
                 DocumentReference docRefDes = (DocumentReference) docRefList.get(1);
+
                 Toast.makeText(getApplicationContext(), "Loading Tree Data...", Toast.LENGTH_SHORT).show();
+
+                // tree data from table 'trees'
                 new Handler().postDelayed(() ->   docRefTree.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
 
                     @SuppressLint("SetTextI18n")
@@ -415,8 +424,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         if (task.isSuccessful()) {
                             DocumentSnapshot document = task.getResult();
                             if (document.exists()) {
-                                //set the data
 
+                                //Display the data
                                 treeDetailsUpdate.setText(document.getString("name") + "\n" +
                                         document.getString("condition") + "\n");
                                 //set the rating using 'rating' field
@@ -441,6 +450,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         }
                     }
                 }), 3000);
+
+                //description data from table 'description'.
                 new Handler().postDelayed(() ->   docRefDes.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
 
                     @SuppressLint("SetTextI18n")
@@ -449,7 +460,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         if (task.isSuccessful()) {
                             DocumentSnapshot document = task.getResult();
                             if (document.exists()) {
-                                //set the data
+                                //get the data to local array
                                chosenTreeDes =  (HashMap<String,String>)(document.get("des"));
                                 for (Object str : chosenTreeDes.entrySet().toArray()) {
                                     existTreeDescription.setText(str.toString());
@@ -466,6 +477,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 new Handler().postDelayed(() -> updateLinear.setVisibility(View.VISIBLE), 3000);
             }
         });
+
+        // stroll through the descriptions of the specific tree clicked.
         nextDescription.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -477,6 +490,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 gDes++;
         }});
 
+        // GUI to add description
         existAddTreeDes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -498,17 +512,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     @Override
                     public void onClick(View view) {
 
+                        // concatenate the last description the list already ecxited.
                         chosenTreeDes.put(new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date()) ,desExtra);
+                        // add the update description list
                         TreeServer.updateTree(db , (DocumentReference) docRefList.get(1), 2, chosenTreeDes, mAuth);
-
-//                            chosenTreeDes.add(desExtra);
-//                        db.collection("description").document(desID.getId()).update(mSnippet, chosenTreeDes);
                         addExtraLinear.setVisibility(View.INVISIBLE);
                         existAddTreeDes.setVisibility(View.VISIBLE);
                     }
                 });
             }
         });
+
+        // update the tre condition component
         updateTreeCond.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -544,13 +559,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         //use upadate method in TresServer to update the tree condition
                         TreeServer.updateTree(db, (DocumentReference) docRefList.get(0), 1, treeCondSts, mAuth);
                         //update the condition field of the docRef
-//                        db.collection("trees").document(mSnippet).update("condition", treeCondSts);
                         updateTreeConditionLinear.setVisibility(View.INVISIBLE);
                     }
                 });
             }
         });
-//        set the listener on the update the rating value based on the rating bar
+
+        //set the listener on the update the rating value based on the rating bar
         rateTree.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
             @Override
             public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
@@ -583,7 +598,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         new Handler().postDelayed(() -> moreDetails.setVisibility(View.INVISIBLE), 3000);
         new Handler().postDelayed(() -> delTreeButton.setVisibility(View.INVISIBLE), 3000);
         return false;
-
     }
 
 
