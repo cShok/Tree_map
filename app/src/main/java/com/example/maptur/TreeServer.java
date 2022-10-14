@@ -19,7 +19,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-enum MarkerChoice {ALL_TREES, MINE, RIPE, SPECIFIC}
 
 
 public class TreeServer {
