@@ -589,24 +589,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     // tree's functions //
 
-    // gets the full information to add, arrange in JSON like format and add to the server
-    public void addTree(LatLng latLng) {
-        Map<String, Object> tree = new HashMap<>();
-        tree.put("name", addTreeName.toString());
-        tree.put("condition", treeCondSts);
-        tree.put("rating", 3);
-        tree.put("numOfRates", 1);
-        tree.put("creator", FirebaseAuth.getInstance().getCurrentUser().getEmail());
 
-        TreeServer.createTree(latLng, tree, treeDes.toString(), db, mAuth);
 
-        addTreeLinear.setVisibility(View.INVISIBLE);
-        Toast.makeText(MapsActivity.this, "Adding your tree...", Toast.LENGTH_SHORT).show();
-        new Handler().postDelayed(() -> updateUI(), 3000);
-
-    }
-
-    //get the tree information from user and call addTree function
+    //get the new tree information from user and call addTree function
     public void addTreeForm(LatLng latLng) {
 
         //TODO add verify name, description and condition
@@ -635,7 +620,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         });
-
+        // handle the description edit text
         addDesEdit.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
@@ -653,43 +638,47 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
         });
-        treeCond.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(RadioGroup radioGroup, int i) {
-                switch (i) {
-                    case R.id.winter:
-                        treeCondSts = "Autumn";
-                        break;
-                    case R.id.spring:
-                        treeCondSts = "Flowers";
-                        break;
-
-                    case R.id.summer:
-                        treeCondSts =  "Ripe";
-                        break;
-                    case R.id.autumn:
-                        treeCondSts = "Bloom";
-                        break;
-                }
-            }
-
-        });
-
-        exitTreeForm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                updateUI();
+        // handle the condition choice
+        treeCond.setOnCheckedChangeListener((radioGroup, i) -> {
+            switch (i) {
+                case R.id.winter:
+                    treeCondSts = "Autumn";
+                    break;
+                case R.id.spring:
+                    treeCondSts = "Flowers";
+                    break;
+                case R.id.summer:
+                    treeCondSts =  "Ripe";
+                    break;
+                case R.id.autumn:
+                    treeCondSts = "Bloom";
+                    break;
             }
         });
-        confirmTreeForm.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                addTree(latLng);
-            }
-        });
+
+        exitTreeForm.setOnClickListener(view -> updateUI());
+        confirmTreeForm.setOnClickListener(view -> addTree(latLng));
     }
 
-    //get the user input of the type of tree and call server with only trees of that type.
+    // gets the full information to add, arrange in key:value format and sends it to the server
+    public void addTree(LatLng latLng) {
+        // initialize the tree's attributes
+        Map<String, Object> tree = new HashMap<>();
+        tree.put("name", addTreeName.toString());
+        tree.put("condition", treeCondSts);
+        tree.put("rating", 3);
+        tree.put("numOfRates", 1);
+        tree.put("creator", FirebaseAuth.getInstance().getCurrentUser().getEmail());
+
+        // send the tree to the db
+        TreeServer.createTree(latLng, tree, treeDes.toString(), db, mAuth);
+
+        addTreeLinear.setVisibility(View.INVISIBLE);
+        Toast.makeText(MapsActivity.this, "Adding your tree...", Toast.LENGTH_SHORT).show();
+        new Handler().postDelayed(() -> updateUI(), 3000);
+    }
+
+    //get the user input of the type of tree and call server with only trees of that type
     private void getFilterType() {
 
         EditText input = new EditText(MapsActivity.this);
@@ -698,12 +687,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         new AlertDialog.Builder(MapsActivity.this)
                 .setTitle("Enter tree type")
                 .setView(input)
-                .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        treeType = finalInput.getText().toString();
-                        return;
-                    }
+                .setPositiveButton("OK", (dialog, which) -> {
+                    treeType = finalInput.getText().toString();
+                    return;
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
