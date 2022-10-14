@@ -430,9 +430,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 //        getMarkerSnippet(marker); // query to get the tree id
 //        getTreeData(marker);
-        ArrayList<Object> tmp = new ArrayList<>();
-        LatLng ll = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
-        TreeServer.getTreeData(mMap,db,mAuth, ll,tmp);
+        ArrayList<Object> docRefList = new ArrayList<>();
+        LatLng treeLocation = new LatLng(marker.getPosition().latitude, marker.getPosition().longitude);
+        TreeServer.getTreeData(db, treeLocation, docRefList, mAuth);
 
         moreDetails = findViewById(R.id.more_details);
         rateTree.setIsIndicator(true);
@@ -470,10 +470,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View view) {
                 //unlock rateTree  rating bar
 
-                new Handler().postDelayed(() -> tmp.get(0), 3000);
-                new Handler().postDelayed(() -> tmp.get(1), 3000);
-                DocumentReference docRefTree = (DocumentReference) tmp.get(0);
-                DocumentReference docRefDes = (DocumentReference) tmp.get(1);
+                new Handler().postDelayed(() -> docRefList.get(0), 3000);
+                new Handler().postDelayed(() -> docRefList.get(1), 3000);
+                DocumentReference docRefTree = (DocumentReference) docRefList.get(0);
+                DocumentReference docRefDes = (DocumentReference) docRefList.get(1);
                 Log.i("docRefTree", docRefTree.toString());
                 Log.i("docRefDes", docRefDes.toString());
                 Toast.makeText(getApplicationContext(), "Loading Tree Data...", Toast.LENGTH_SHORT).show();
@@ -541,13 +541,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View view) {
                 // loop through all the values in the array, when get to the last value, set the text to the first value
                 Object [] tmp = chosenTreeDes.entrySet().toArray();
-
                 int maxDes = chosenTreeDes.entrySet().toArray().length;
                 if(gDes >= maxDes) gDes =0;
                 existTreeDescription.setText(tmp[gDes].toString());
                 gDes++;
-
-
         }});
 
         existAddTreeDes.setOnClickListener(new View.OnClickListener() {
@@ -571,8 +568,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     @Override
                     public void onClick(View view) {
 
-                        chosenTreeDes.put(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()) ,desExtra);
-                        TreeServer.updateTree(db , (DocumentReference) tmp.get(1), 2, chosenTreeDes);
+                        chosenTreeDes.put(new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date()) ,desExtra);
+                        TreeServer.updateTree(db , (DocumentReference) docRefList.get(1), 2, chosenTreeDes, mAuth);
 
 //                            chosenTreeDes.add(desExtra);
 //                        db.collection("description").document(desID.getId()).update(mSnippet, chosenTreeDes);
@@ -615,7 +612,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     @Override
                     public void onClick(View view) {
                         //use upadate method in TresServer to update the tree condition
-                        TreeServer.updateTree(db, (DocumentReference) tmp.get(0), 1, treeCondSts);
+                        TreeServer.updateTree(db, (DocumentReference) docRefList.get(0), 1, treeCondSts, mAuth);
                         //update the condition field of the docRef
 //                        db.collection("trees").document(mSnippet).update("condition", treeCondSts);
                         updateTreeConditionLinear.setVisibility(View.INVISIBLE);
@@ -636,7 +633,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     tmp1.add((int)v);
                     tmp1.add(1, numOfRatings);
                     tmp1.add(2, totalRating);
-                    TreeServer.updateTree(db, (DocumentReference) tmp.get(0), 0, tmp1 );
+                    TreeServer.updateTree(db, (DocumentReference) docRefList.get(0), 0, tmp1, mAuth);
                     //lock the rating bar
                     rateTree.setIsIndicator(true);
                 }

@@ -16,165 +16,39 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
+
+// enum MarkerChoice with ALLTREES, MINE, RIPE, SPECIFIC
+//enum MarkerChoice {
+//    ALLTREES, MINE, RIPE, SPECIFIC
+//}
+
+
+
 
 public class TreeServer {
-    static boolean found = false;
- public DocumentReference gDoc;
-//    1. create
-//    2. update
-//    3. read
-//    4. delete
 
-    //read
-    // we need to write a generic function that will receive map, db, user, and filtering type
-    // and return a list of trees depending on the filtering type
-    // this function will replace getAllMarkers + presentMyMarkers + searchMarkers
+    // CRUD operations //
 
-    public static void getTreeData(GoogleMap mMap, FirebaseFirestore db, FirebaseAuth userName, LatLng latLng, ArrayList<Object> docr){
-        db.collection("markers").get()
-                .addOnCompleteListener(task1 -> {
-                    if (task1.isSuccessful()) {
-                        for (QueryDocumentSnapshot document1 : task1.getResult()) {
-                            if(Objects.equals(latLng.latitude, document1.getDouble("position.latitude")) &&
-                                    Objects.equals(latLng.longitude, document1.getDouble("position.longitude"))){
+    // create //
 
-                                db.collection("trees")
-                                        .get()
-                                        .addOnCompleteListener(task2 -> {
-                                            if (task2.isSuccessful()) {
-                                                for (QueryDocumentSnapshot document2 : task2.getResult()) {
-                                                    if (Objects.equals(document2.getId(), document1.getString("snippet"))) {
-                                                        docr.add(0, document2.getReference());
-                                                        db.collection("description")
-                                                                .get()
-                                                                .addOnCompleteListener(task3 -> {
-                                                                    if (task2.isSuccessful()) {
-                                                                        for (QueryDocumentSnapshot document3 : task3.getResult()) {
-                                                                            if (document3.getString("TreeId").equals(document2.getId())) {
-                                                                                docr.add(1, document3.getReference());
-                                                                                Log.i("docr5", docr.toString());
-                                                                                return;
-                                                                            }
-                                                                        }
-
-                                                                    } else {
-                                                                        Log.d("TAG", "Error getting documents: ", task2.getException());
-                                                                    }
-
-                                                                });
-                                                        break;
-
-                                                    }
-                                                }
-
-                                            } else {
-                                                Log.d("TAG", "Error getting documents: ", task2.getException());
-                                            }
-                                        });
-                            }
-
-                        }
-                    }
-                }
-                );
-    }
-    public static void getMarkers (GoogleMap mMap, FirebaseFirestore db, FirebaseAuth userName, ArrayList<Object> filter) {
-        db.collection("markers")
-                .get()
-                .addOnCompleteListener(task1 -> {
-                    if (task1.isSuccessful()) {
-                        for (QueryDocumentSnapshot document1 : task1.getResult()) {
-                            switch  ((int) filter.get(0)) {
-                                case 0: // all markers
-                                    LatLng marker = new LatLng(document1.getDouble("position.latitude"), document1.getDouble("position.longitude"));
-                                    mMap.addMarker(new MarkerOptions().position(marker).title(document1.getString("title")));
-                                    break;
-                                case 1: // my markers
-                                    // get from 'trees' where document id equals to the doucumnet1.snippet
-                                    db.collection("trees")
-                                            .get()
-                                            .addOnCompleteListener(task2 -> {
-                                                if (task2.isSuccessful()) {
-                                                    for (QueryDocumentSnapshot document2 : task2.getResult()) {
-                                                        if (Objects.equals(document2.getId(), document1.getString("snippet")) && Objects.equals(document2.getString("creator"), userName.getCurrentUser().getEmail())) {
-                                                                LatLng marker1 = new LatLng(document1.getDouble("position.latitude"), document1.getDouble("position.longitude"));
-                                                                mMap.addMarker(new MarkerOptions().position(marker1).title(document1.getString("title")));
-
-                                                        }
-                                                    }
-
-                                                } else {
-                                                    Log.d("TAG", "Error getting documents: ", task2.getException());
-                                                }
-                                            });
-                                    break;
-                                case 2: // search markers by title
-                                    if (document1.getString("title").contains((String) filter.get(1))) {
-                                        LatLng marker2 = new LatLng(document1.getDouble("position.latitude"), document1.getDouble("position.longitude"));
-                                        mMap.addMarker(new MarkerOptions().position(marker2).title(document1.getString("title")));
-                                    }
-                                    break;
-                                case 3: // search markers where the filed condition is "Ripe"
-                                    db.collection("trees")
-                                            .get()
-                                            .addOnCompleteListener(task2 -> {
-                                                if (task2.isSuccessful()) {
-                                                    for (QueryDocumentSnapshot document2 : task2.getResult()) {
-                                                        if (Objects.equals(document2.getId(), document1.getString("snippet")) && Objects.equals(document2.getString("condition"), "Ripe")) {
-                                                            LatLng marker1 = new LatLng(document1.getDouble("position.latitude"), document1.getDouble("position.longitude"));
-                                                            mMap.addMarker(new MarkerOptions().position(marker1).title(document1.getString("title")));
-
-                                                        }
-                                                    }
-
-                                                } else {
-                                                    Log.d("TAG", "Error getting documents: ", task2.getException());
-                                                }
-                                            });
-                                    break;
-
-                            }
-                        }
-                    } else {
-                        Log.w("TAG", "Error getting documents.", task1.getException());
-                    }
-                });
-
-        }
-
-//    public static void getMarkerDetails () {
-//             return specific tree?
-
-
-    //create
-    // The function gets tree details, the marker details, db, and maybe the userName ->
-    // createTree(latlng, details, db, auth?)
-
-
-    // create a function that get map, db and optional to get a string
-    // and return a list of trees that are in the map
-    // this function will replace getAllMarkers + presentMyMarkers + searchMarkers
-
-    //update
-    // The function gets tree details, the marker details, db, and maybe the userName ->
-    // createTree(latlng, details, db, auth?)
+    // this function creates a new marker in the database, and tree+description corresponding to it
     public static void createTree(LatLng latLng, Map<String, Object> tree, String treeDes, FirebaseFirestore db, FirebaseAuth userName) {
+
+        // add the tree to the database using the tree map data
         db.collection("trees").add(tree).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
             @Override
             public void onSuccess(DocumentReference documentReference) {
                 Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
-                // new marker
+                // new marker initialization with the lat, lng and the tree id in the snippet
                 MarkerOptions marker = new MarkerOptions();
                 marker.position(latLng);
                 marker.snippet(documentReference.getId());
                 marker.title((String) tree.get("name"));
-
+                // add the marker to the database
                 db.collection("markers").add(marker).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
@@ -186,16 +60,14 @@ public class TreeServer {
                         Log.w("TAG", "Error adding document", e);
                     }
                 });
-
+                // new description map with the treeDes and the tree id as key
                 Map<String, Object> description = new HashMap<>();
-
-                // add an array of descriptions
-
-                description.put( "TreeId", documentReference.getId());
-                Map<String,String> desCol = new HashMap<>();
+                description.put("TreeId", documentReference.getId());
+                Map<String, String> desCol = new HashMap<>();
+                // description in the format Timestamp, user name and the string description
                 desCol.put(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()), treeDes);
-                description.put( "des",desCol);
-
+                description.put("des", desCol);
+                // add the description map to the database
                 db.collection("description").add(description).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
                     @Override
                     public void onSuccess(DocumentReference documentReference) {
@@ -219,23 +91,153 @@ public class TreeServer {
 
     }
 
-    public static void updateTree(FirebaseFirestore db ,DocumentReference docR, int filter, Object obj){
-        switch (filter){
+    // read //
+
+    //method to retrieve tree data from the DB using lat,lng as the key
+    //first, retrieves the marker, then uses the foreign key of the tree to retrieve the tree and the description from their considerable tables
+    //docRef stores the document reference of the tree and the description
+
+    public static void getTreeData(FirebaseFirestore db, LatLng latLng, ArrayList<Object> docRef, FirebaseAuth mAuth) {
+
+        db.collection("markers").get()
+                .addOnCompleteListener(task1 -> {
+                            if (task1.isSuccessful()) {
+                                for (QueryDocumentSnapshot document1 : task1.getResult()) {
+                                    //get the specific Marker by the Lat,Long, in Document1
+                                    if (Objects.equals(latLng.latitude, document1.getDouble("position.latitude")) &&
+                                            Objects.equals(latLng.longitude, document1.getDouble("position.longitude"))) {
+                                        db.collection("trees")
+                                                .get()
+                .addOnCompleteListener(task2 -> {
+                            if (task2.isSuccessful()) {
+                                for (QueryDocumentSnapshot document2 : task2.getResult()) {
+                                    //get the specific Tree using the snippet filed,  In document2. Saving in docRef[0].
+                                    if (Objects.equals(document2.getId(), document1.getString("snippet"))) {
+                                        docRef.add(0, document2.getReference());
+                                        db.collection("description")
+                                                .get()
+                .addOnCompleteListener(task3 -> {
+                            if (task2.isSuccessful()) {
+                                for (QueryDocumentSnapshot document3 : task3.getResult()) {
+                                    //get the description entry using the tree ID, in Document 3. saving in docRef[1]
+                                    if (document3.getString("TreeId").equals(document2.getId())) {
+                                        docRef.add(1, document3.getReference());
+                                        addLog(db, mAuth, "pulled tree data" + document1.getId());
+                                        return;
+                                    }
+                                }
+                                                    } else {
+                                                        Log.d("TAG", "Error getting documents: ", task2.getException());
+                                                    }
+                                                });
+                                                break;
+                                            }
+                                        }
+                                    } else {
+                                        Log.d("TAG", "Error getting documents: ", task2.getException());
+                                    }
+                                });
+                                    }
+
+                                }
+                            }
+                        }//end task1
+                );//end of 1 q
+    }
+
+    // method to retrieve markers based on the given filter
+    public static void getMarkers(GoogleMap mMap, FirebaseFirestore db, FirebaseAuth userName, ArrayList<Object> filter) {
+
+        db.collection("markers")
+                .get()
+                .addOnCompleteListener(task1 -> {
+                    if (task1.isSuccessful()) {
+                        for (QueryDocumentSnapshot document1 : task1.getResult()) {
+                            switch ((int) filter.get(0)) {
+
+                                case 0: // all markers
+                                    LatLng marker = new LatLng(document1.getDouble("position.latitude"), document1.getDouble("position.longitude"));
+                                    mMap.addMarker(new MarkerOptions().position(marker).title(document1.getString("title")));
+                                    addLog(db, userName, "Got all markers");
+                                    break;
+
+                                case 1: // my markers
+                                    // get from 'trees' where document id equals to the document1.snippet
+                                    db.collection("trees")
+                                            .get()
+                                            .addOnCompleteListener(task2 -> {
+                                                if (task2.isSuccessful()) {
+                                                    for (QueryDocumentSnapshot document2 : task2.getResult()) {
+                                                        //Get all the markers where the username corresponds to the creator
+                                                        if (Objects.equals(document2.getId(), document1.getString("snippet")) &&
+                                                                Objects.equals(document2.getString("creator"), userName.getCurrentUser().getEmail())) {
+                                                            LatLng marker1 = new LatLng(document1.getDouble("position.latitude"), document1.getDouble("position.longitude"));
+                                                            mMap.addMarker(new MarkerOptions().position(marker1).title(document1.getString("title")));
+                                                        }
+                                                    }
+                                                } else {
+                                                    Log.d("TAG", "Error getting documents: ", task2.getException());
+                                                }
+                                            });
+                                    addLog(db, userName, "Got his markers");
+                                    break;
+
+                                case 2: // search markers by title
+                                    if (document1.getString("title").contains((String) filter.get(1))) {
+                                        LatLng marker2 = new LatLng(document1.getDouble("position.latitude"), document1.getDouble("position.longitude"));
+                                        mMap.addMarker(new MarkerOptions().position(marker2).title(document1.getString("title")));
+                                    }
+                                    addLog(db, userName, "Got markers with the title: " + filter.get(1));
+                                    break;
+
+                                case 3: // search markers where the filed condition is "Ripe"
+                                    db.collection("trees")
+                                            .get()
+                                            .addOnCompleteListener(task2 -> {
+                                                if (task2.isSuccessful()) {
+                                                    for (QueryDocumentSnapshot document2 : task2.getResult()) {
+                                                        //Get all markers where the tree condition is ripe
+                                                        if (Objects.equals(document2.getId(), document1.getString("snippet")) &&
+                                                                Objects.equals(document2.getString("condition"), "Ripe")) {
+                                                            LatLng marker1 = new LatLng(document1.getDouble("position.latitude"), document1.getDouble("position.longitude"));
+                                                            mMap.addMarker(new MarkerOptions().position(marker1).title(document1.getString("title")));
+                                                        }
+                                                    }
+                                                } else {
+                                                    Log.d("TAG", "Error getting documents: ", task2.getException());
+                                                }
+                                            });
+                                    addLog(db, userName, "Got markers with the condition: Ripe");
+                                    break;
+                            }
+                        }
+                    } else {
+                        Log.w("TAG", "Error getting documents.", task1.getException());
+                    }
+                });
+
+    }
+
+    // update //
+
+    // this function updates the tree and the description in the database
+    public static void updateTree(FirebaseFirestore db, DocumentReference docR, int filter, Object obj, FirebaseAuth mAuth) {
+        switch (filter) {
             case 0: // update the rating in the 'tree' collection
-                int rating = (int) ((ArrayList<Object>)obj).get(0);
-                int numOfRatings = (int) ((ArrayList<Object>)obj).get(1);;
-                int totalRating = (int) ((ArrayList<Object>)obj).get(2);
+                int rating = (int) ((ArrayList<Object>) obj).get(0);
+                int numOfRatings = (int) ((ArrayList<Object>) obj).get(1);
+                int totalRating = (int) ((ArrayList<Object>) obj).get(2);
                 //calculate the new rating
                 Log.i("TAG", "updateTree: " + rating + " " + numOfRatings + " " + totalRating);
-                int newRating = (int)(totalRating + rating *numOfRatings) / (numOfRatings + 1) ;
-                docR.update("rating",  newRating);
+                int newRating = (totalRating + rating * numOfRatings) / (numOfRatings + 1);
+                docR.update("rating", newRating);
                 numOfRatings++;
                 docR.update("numOfRates", numOfRatings);
-                Log.i("TAG", "updateTreeAfter: " + rating + " " + numOfRatings + " " + totalRating +" " + newRating);
+                addLog(db, mAuth, "updated tree " + docR.getId() + "rating " + rating +  " .Now its rating is " + newRating);
 
                 break;
             case 1: // update the Condition in the 'tree' collection
-                docR.update("condition", (String)obj);
+                docR.update("condition", obj);
 
                 break;
             case 2: // update the description
@@ -243,14 +245,11 @@ public class TreeServer {
                 break;
         }
     }
-    public static void addLog(FirebaseFirestore db, FirebaseAuth userName, String log){
-        Map<Object,String> dLog = new HashMap<>();
-        dLog.put(userName.getCurrentUser().getEmail(), new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()) + " | " + log);
-        db.collection("Logs").add(dLog);
-    }
+
+    // delete //
 
     //delete tree marker and description based on LatLng
-    public static void deleteTree(FirebaseFirestore db, LatLng latLng){
+    public static void deleteTree(FirebaseFirestore db, LatLng latLng) {
         db.collection("markers")
                 .whereEqualTo("position.latitude", latLng.latitude)
                 .whereEqualTo("position.longitude", latLng.longitude)
@@ -275,4 +274,14 @@ public class TreeServer {
                     }
                 });
     }
+
+    public static void addLog(FirebaseFirestore db, FirebaseAuth userName, String log) {
+        Map<Object, String> dLog = new HashMap<>();
+        dLog.put(userName.getCurrentUser().getEmail(), new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()) + " | " + log);
+        db.collection("Logs").add(dLog);
+    }
+
+
+
+
 }
