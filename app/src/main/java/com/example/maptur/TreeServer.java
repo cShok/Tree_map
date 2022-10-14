@@ -2,15 +2,9 @@ package com.example.maptur;
 
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -39,55 +33,29 @@ public class TreeServer {
     public static void createTree(LatLng latLng, Map<String, Object> tree, String treeDes, FirebaseFirestore db, FirebaseAuth userName) {
 
         // add the tree to the database using the tree map data
-        db.collection("trees").add(tree).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-            @Override
-            public void onSuccess(DocumentReference documentReference) {
-                Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
-                // new marker initialization with the lat, lng and the tree id in the snippet
-                MarkerOptions marker = new MarkerOptions();
-                marker.position(latLng);
-                marker.snippet(documentReference.getId());
-                marker.title((String) tree.get("name"));
-                // add the marker to the database
-                db.collection("markers").add(marker).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w("TAG", "Error adding document", e);
-                    }
-                });
-                // new description map with the treeDes and the tree id as key
-                Map<String, Object> description = new HashMap<>();
-                description.put("TreeId", documentReference.getId());
-                Map<String, String> desCol = new HashMap<>();
-                // description in the format Timestamp, user name and the string description
-                desCol.put(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()), treeDes);
-                description.put("des", desCol);
-                // add the description map to the database
-                db.collection("description").add(description).addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                    @Override
-                    public void onSuccess(DocumentReference documentReference) {
-                        addLog(db, userName, "Added a new Tree: " + tree.get("name"));
-                        Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
-                    }
-                }).addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w("TAG", "Error adding document", e);
-                    }
-                });
+        db.collection("trees").add(tree).addOnSuccessListener(documentReference -> {
+            Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
+            // new marker initialization with the lat, lng and the tree id in the snippet
+            MarkerOptions marker = new MarkerOptions();
+            marker.position(latLng);
+            marker.snippet(documentReference.getId());
+            marker.title((String) tree.get("name"));
+            // add the marker to the database
+            db.collection("markers").add(marker).addOnSuccessListener(documentReference1 -> Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference1.getId())).addOnFailureListener(e -> Log.w("TAG", "Error adding document", e));
+            // new description map with the treeDes and the tree id as key
+            Map<String, Object> description = new HashMap<>();
+            description.put("TreeId", documentReference.getId());
+            Map<String, String> desCol = new HashMap<>();
+            // description in the format Timestamp, user name and the string description
+            desCol.put(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()), treeDes);
+            description.put("des", desCol);
+            // add the description map to the database
+            db.collection("description").add(description).addOnSuccessListener(documentReference12 -> {
+                addLog(db, userName, "Added a new Tree: " + tree.get("name"));
+                Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference12.getId());
+            }).addOnFailureListener(e -> Log.w("TAG", "Error adding document", e));
 
-            }
-        }).addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.w("TAG", "Error adding document", e);
-            }
-        });
+        }).addOnFailureListener(e -> Log.w("TAG", "Error adding document", e));
 
     }
 
@@ -95,42 +63,31 @@ public class TreeServer {
     public static void createUser(FirebaseFirestore db, FirebaseAuth mAuth) {
         // if user doesn't exist in database in the collection "users" then add him
         DocumentReference docRef = db.collection("users").document(mAuth.getCurrentUser().getUid());
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                        //add timestamp to value 'lastLogin'
-                        Map<String, Object> lastLogin = new HashMap<>();
-                        lastLogin.put("last Login", FieldValue.serverTimestamp());
-                        db.collection("users").document(mAuth.getCurrentUser().getUid()).update(lastLogin);
-                        addLog(db, mAuth, "User logged at " + FieldValue.serverTimestamp());
-                    } else {
-                        Map<String, Object> user = new HashMap<>();
-                        user.put("name", mAuth.getCurrentUser().getDisplayName());
-                        user.put("email", mAuth.getCurrentUser().getEmail());
-                        user.put("last Login", FieldValue.serverTimestamp());
-                        db.collection("users").document(mAuth.getCurrentUser().getUid())
-                                .set(user)
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        Log.d("TAG", "DocumentSnapshot successfully written!");
-                                        addLog(db, mAuth, "User created at " + FieldValue.serverTimestamp());
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Log.w("TAG", "Error writing document", e);
-                                    }
-                                });
-                    }
+        docRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot document = task.getResult();
+                if (document.exists()) {
+                    //add timestamp to value 'lastLogin'
+                    Map<String, Object> lastLogin = new HashMap<>();
+                    lastLogin.put("last Login", FieldValue.serverTimestamp());
+                    db.collection("users").document(mAuth.getCurrentUser().getUid()).update(lastLogin);
+                    addLog(db, mAuth, "User logged at " + FieldValue.serverTimestamp());
+                } else {
+                    Map<String, Object> user = new HashMap<>();
+                    user.put("name", mAuth.getCurrentUser().getDisplayName());
+                    user.put("email", mAuth.getCurrentUser().getEmail());
+                    user.put("last Login", FieldValue.serverTimestamp());
+                    db.collection("users").document(mAuth.getCurrentUser().getUid())
+                            .set(user)
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d("TAG", "DocumentSnapshot successfully written!");
+                                addLog(db, mAuth, "User created at " + FieldValue.serverTimestamp());
+                            })
+                            .addOnFailureListener(e -> Log.w("TAG", "Error writing document", e));
                 }
-                else {
-                    Log.d("TAG", "get failed with ", task.getException());
-                }
+            }
+            else {
+                Log.d("TAG", "get failed with ", task.getException());
             }
         });
 
@@ -281,7 +238,6 @@ public class TreeServer {
                 numOfRatings++;
                 docR.update("numOfRates", numOfRatings);
                 addLog(db, mAuth, "updated tree " + docR.getId() + "rating " + rating +  " .Now its rating is " + newRating);
-
                 break;
             case 1: // update the Condition in the 'tree' collection
                 docR.update("condition", obj);

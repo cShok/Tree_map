@@ -2,9 +2,7 @@ package com.example.maptur;
 
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -13,7 +11,6 @@ import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -23,7 +20,6 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -44,12 +40,10 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.navigation.NavigationView;
 import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentReference;
@@ -65,7 +59,6 @@ import java.util.Map;
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
-    private ActivityMapsBinding binding;
     private FirebaseAuth mAuth;
 
     private FirebaseFirestore db;
@@ -76,11 +69,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleSignInClient googleSignInClient;
     private SignInButton btSignIn;
     private LinearLayout addTreeLinear, updateLinear, addExtraLinear, updateTreeConditionLinear;
-    private TextView addTreeText, addDesText, existTreeDescription, treeDetailsUpdate;
+    private TextView existTreeDescription;
+    private TextView treeDetailsUpdate;
     private EditText addTreeEdit, addDesEdit, addExtraEdit;
-    private Button exitTreeForm, confirmTreeForm, exitDetails, nextDescription, updateTreeCond,
-            existAddTreeDes, conExtraDes, confirmCondButton, delTreeButton, btLogout, moreDetails;
-    private RadioGroup treeCond, treeCondUpdate;
+    private Button exitDetails;
+    private Button existAddTreeDes;
+    private Button conExtraDes;
+    private Button confirmCondButton;
+    private Button delTreeButton;
+    private Button btLogout;
+    private Button moreDetails;
+    private RadioGroup treeCondUpdate;
     private Editable addTreeName, treeDes;
     private RatingBar rateTree;
     private View locationButton;
@@ -102,7 +101,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
-        binding = ActivityMapsBinding.inflate(getLayoutInflater());
+        com.example.maptur.databinding.ActivityMapsBinding binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
@@ -127,36 +126,27 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Initialize sign in client
         googleSignInClient = GoogleSignIn.getClient(MapsActivity.this
                 , googleSignInOptions);
-        btSignIn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Initialize sign in intent
-                Intent intent = googleSignInClient.getSignInIntent();
-                // Start activity for result
-                startActivityForResult(intent, 100);
-            }
+        btSignIn.setOnClickListener(view -> {
+            // Initialize sign in intent
+            Intent intent = googleSignInClient.getSignInIntent();
+            // Start activity for result
+            startActivityForResult(intent, 100);
         });
-        btLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Sign out from google
-                googleSignInClient.signOut().addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        // Check condition
-                        if (task.isSuccessful()) {
-                            // When task is successful
-                            // Sign out from firebase
-                            mAuth.signOut();
-                            signedIn = false;
-                            // Display Toast
-                            Toast.makeText(getApplicationContext(), "Logout successful", Toast.LENGTH_SHORT).show();
-                            // Update UI
-                            updateUI();
-                        }
-                    }
-                });
-            }
+        btLogout.setOnClickListener(view -> {
+            // Sign out from google
+            googleSignInClient.signOut().addOnCompleteListener(task -> {
+                // Check condition
+                if (task.isSuccessful()) {
+                    // When task is successful
+                    // Sign out from firebase
+                    mAuth.signOut();
+                    signedIn = false;
+                    // Display Toast
+                    Toast.makeText(getApplicationContext(), "Logout successful", Toast.LENGTH_SHORT).show();
+                    // Update UI
+                    updateUI();
+                }
+            });
         });
 
         // navigation drawer
@@ -164,50 +154,42 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         DrawerLayout drawerLayout = findViewById(R.id.autumnUpdate);
         NavigationView navigationView = findViewById(R.id.navigation_view);
 
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                drawerLayout.openDrawer(GravityCompat.START);
-            }
-        });
+        toolbar.setNavigationOnClickListener(v -> drawerLayout.openDrawer(GravityCompat.START));
 
-        navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull @org.jetbrains.annotations.NotNull MenuItem item) {
+        navigationView.setNavigationItemSelectedListener(item -> {
 
-                int id = item.getItemId();
-                drawerLayout.closeDrawer(GravityCompat.START);
-                removeMarkers();
-                ArrayList <Object> filters = new ArrayList<>();
-                switch (id) {
-                    // all trees
-                    case R.id.nav_all_trees:
-                        filters.add(0, 0);
-                        Toast.makeText(getApplicationContext(), "All trees", Toast.LENGTH_SHORT).show();
-                        break;
-                    // my trees
-                    case R.id.nav_my_trees:
-                        Toast.makeText(MapsActivity.this, "Showing your trees", Toast.LENGTH_SHORT).show();
-                        filters.add(0, 1);
-                        break;
-                    // ripe trees
-                    case R.id.fruit_now:
-                        Toast.makeText(MapsActivity.this, "Tree that have fruit on them", Toast.LENGTH_SHORT).show();
-                        filters.add(0, 3);
-                        break;
-                    // type of tree
-                    case R.id.tree_type:
-                        getFilterType();
-                        filters.add(0, 2);
-                        filters.add(1, treeType);
-                        break;
-                    default:
-                        return true;
-                }
-                // get the trees from the database by calling the generic function
-                TreeServer.getMarkers(mMap, db, mAuth, filters);
-                return true;
+            int id = item.getItemId();
+            drawerLayout.closeDrawer(GravityCompat.START);
+            removeMarkers();
+            ArrayList <Object> filters = new ArrayList<>();
+            switch (id) {
+                // all trees
+                case R.id.nav_all_trees:
+                    filters.add(0, 0);
+                    Toast.makeText(getApplicationContext(), "All trees", Toast.LENGTH_SHORT).show();
+                    break;
+                // my trees
+                case R.id.nav_my_trees:
+                    Toast.makeText(MapsActivity.this, "Showing your trees", Toast.LENGTH_SHORT).show();
+                    filters.add(0, 1);
+                    break;
+                // ripe trees
+                case R.id.fruit_now:
+                    Toast.makeText(MapsActivity.this, "Tree that have fruit on them", Toast.LENGTH_SHORT).show();
+                    filters.add(0, 3);
+                    break;
+                // type of tree
+                case R.id.tree_type:
+                    getFilterType();
+                    filters.add(0, 2);
+                    filters.add(1, treeType);
+                    break;
+                default:
+                    return true;
             }
+            // get the trees from the database by calling the generic function
+            TreeServer.getMarkers(mMap, db, mAuth, filters);
+            return true;
         });
     }
 
@@ -241,14 +223,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Extract My Location View from maps fragment
         locationButton = mapFragment.getView().findViewById(0x2);
 
-        findViewById(R.id.ic_location).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        findViewById(R.id.ic_location).setOnClickListener(v -> {
 
-                if (mMap != null) {
-                    if (locationButton != null)
-                        locationButton.callOnClick();
-                }
+            if (mMap != null) {
+                if (locationButton != null)
+                    locationButton.callOnClick();
             }
         });
         // get all the markers from the database and refresh the map
@@ -279,23 +258,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         , null);
                         // Check credential
                         mAuth.signInWithCredential(authCredential)
-                                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                                    @Override
-                                    public void onComplete(@NonNull Task<AuthResult> task) {
-                                        // Check condition
-                                        if (task.isSuccessful()) {
-                                            displayToast("You have successfully signed in");
-                                            //add the user to the database or update the user login
-                                            TreeServer.createUser(db, mAuth);
-                                            // global var to control the user activity who demands authentication
-                                            signedIn = true;
-                                            onStart();
-                                            updateUI();
-                                        } else {
-                                            // When task is unsuccessful - display Toast
-                                            displayToast("Authentication Failed :" + task.getException()
-                                                    .getMessage());
-                                        }
+                                .addOnCompleteListener(this, task -> {
+                                    // Check condition
+                                    if (task.isSuccessful()) {
+                                        displayToast("You have successfully signed in");
+                                        //add the user to the database or update the user login
+                                        TreeServer.createUser(db, mAuth);
+                                        // global var to control the user activity who demands authentication
+                                        signedIn = true;
+                                        onStart();
+                                        updateUI();
+                                    } else {
+                                        // When task is unsuccessful - display Toast
+                                        displayToast("Authentication Failed :" + task.getException()
+                                                .getMessage());
                                     }
                                 });
 
@@ -330,12 +306,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //confirm addition
         new AlertDialog.Builder(MapsActivity.this)
                 .setTitle("Would you like to add a tree here?")
-                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        //calls the GUI to get user input
-                        addTreeForm(latLng);
-                    }
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    //calls the GUI to get user input
+                    addTreeForm(latLng);
                 })
                 .setNegativeButton("No", null)
                 .show();
@@ -351,10 +324,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         delTreeButton = findViewById(R.id.deleteTree);// delete button
         treeDetailsUpdate = findViewById(R.id.treeDetailsUpdate);//textview
         updateLinear = findViewById(R.id.details);// The layout
-        nextDescription = findViewById(R.id.nextDes);//button
+        Button nextDescription = findViewById(R.id.nextDes);//button
         existTreeDescription = findViewById(R.id.treeDescriptions);//textview for descriptions
         existAddTreeDes = findViewById(R.id.addDesExist);//button to add description
-        updateTreeCond = findViewById(R.id.addCurrentCond);//button to update condition
+        Button updateTreeCond = findViewById(R.id.addCurrentCond);//button to update condition
         addExtraLinear = findViewById(R.id.addExtraDes);//linear layout to add description
         addExtraEdit = findViewById(R.id.addExtraDesText);//EditView to get the des
         conExtraDes = findViewById(R.id.addExtraDesButton); //button to confirm
@@ -379,221 +352,171 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         delTreeButton.setVisibility(View.VISIBLE);
 
         //delete option
-        delTreeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                new AlertDialog.Builder(MapsActivity.this)
-                        .setTitle("Are you sure you want to delete this tree?")
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                delTreeButton.setVisibility(View.INVISIBLE);
-                                TreeServer.deleteTree(db, marker.getPosition());
-                                moreDetails.setVisibility(View.INVISIBLE);
-                                //hold the function for a 3000 ms till updateUI is ready
-                                //delete the marker from the map
-                                marker.remove();
-                                updateUI();
+        delTreeButton.setOnClickListener(view -> new AlertDialog.Builder(MapsActivity.this)
+                .setTitle("Are you sure you want to delete this tree?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    delTreeButton.setVisibility(View.INVISIBLE);
+                    TreeServer.deleteTree(db, marker.getPosition());
+                    moreDetails.setVisibility(View.INVISIBLE);
+                    //hold the function for a 3000 ms till updateUI is ready
+                    //delete the marker from the map
+                    marker.remove();
+                    updateUI();
 
-                            }
-                        })
-                        .setNegativeButton("No", null)
-                        .show();
-            }
-        });
+                })
+                .setNegativeButton("No", null)
+                .show());
 
-        //main component to handke GUI
-        moreDetails.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+        //main component to handle GUI
+        moreDetails.setOnClickListener(view -> {
 
-                //Gets the tree data via Document Reference
-                new Handler().postDelayed(() -> docRefList.get(0), 3000);
-                new Handler().postDelayed(() -> docRefList.get(1), 3000);
-                DocumentReference docRefTree = (DocumentReference) docRefList.get(0);
-                DocumentReference docRefDes = (DocumentReference) docRefList.get(1);
+            //Gets the tree data via Document Reference
+            new Handler().postDelayed(() -> docRefList.get(0), 3000);
+            new Handler().postDelayed(() -> docRefList.get(1), 3000);
+            DocumentReference docRefTree = (DocumentReference) docRefList.get(0);
+            DocumentReference docRefDes = (DocumentReference) docRefList.get(1);
 
-                Toast.makeText(getApplicationContext(), "Loading Tree Data...", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Loading Tree Data...", Toast.LENGTH_SHORT).show();
 
-                // tree data from table 'trees'
-                new Handler().postDelayed(() ->   docRefTree.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            // tree data from table 'trees'
+            new Handler().postDelayed(() ->   docRefTree.get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
 
-                    @SuppressLint("SetTextI18n")
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
-                            if (document.exists()) {
+                        //Display the data
+                        treeDetailsUpdate.setText(document.getString("name") + "\n" +
+                                document.getString("condition") + "\n");
+                        //set the rating using 'rating' field
+                        rateTree.setRating(document.getDouble("rating").floatValue());
+                        rateTree.setIsIndicator(false);
+                        numOfRatings = document.getDouble("numOfRates").intValue();
+                        totalRating = document.getDouble("rating").intValue();
+                        //set the listener on the exit button
+                        exitDetails.setOnClickListener(view1 -> {
+                            updateLinear.setVisibility(View.INVISIBLE);
+                            exitDetails.setVisibility(View.INVISIBLE);
+                        });
 
-                                //Display the data
-                                treeDetailsUpdate.setText(document.getString("name") + "\n" +
-                                        document.getString("condition") + "\n");
-                                //set the rating using 'rating' field
-                                rateTree.setRating(document.getDouble("rating").floatValue());
-                                rateTree.setIsIndicator(false);
-                                numOfRatings = document.getDouble("numOfRates").intValue();
-                                totalRating = document.getDouble("rating").intValue();
-                                //set the listener on the exit button
-                                exitDetails.setOnClickListener(new View.OnClickListener() {
-                                    @Override
-                                    public void onClick(View view) {
-                                        updateLinear.setVisibility(View.INVISIBLE);
-                                        exitDetails.setVisibility(View.INVISIBLE);
-                                    }
-                                });
-
-                            } else {
-                                Log.d("TAG", "No such document");
-                            }
-                        } else {
-                            Log.d("TAG", "get failed with ", task.getException());
-                        }
+                    } else {
+                        Log.d("TAG", "No such document");
                     }
-                }), 3000);
+                } else {
+                    Log.d("TAG", "get failed with ", task.getException());
+                }
+            }), 3000);
 
-                //description data from table 'description'.
-                new Handler().postDelayed(() ->   docRefDes.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-
-                    @SuppressLint("SetTextI18n")
-                    @Override
-                    public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                        if (task.isSuccessful()) {
-                            DocumentSnapshot document = task.getResult();
-                            if (document.exists()) {
-                                //get the data to local array
-                               chosenTreeDes =  (HashMap<String,String>)(document.get("des"));
-                                for (Object str : chosenTreeDes.entrySet().toArray()) {
-                                    existTreeDescription.setText(str.toString());
-                                    break;
-                                }
-                            } else {
-                                Log.d("TAG", "No such document");
-                            }
-                        } else {
-                            Log.d("TAG", "get failed with ", task.getException());
+            //description data from table 'description'.
+            new Handler().postDelayed(() ->   docRefDes.get().addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    DocumentSnapshot document = task.getResult();
+                    if (document.exists()) {
+                        //get the data to local array
+                       chosenTreeDes =  (HashMap<String,String>)(document.get("des"));
+                        for (Object str : chosenTreeDes.entrySet().toArray()) {
+                            existTreeDescription.setText(str.toString());
+                            break;
                         }
+                    } else {
+                        Log.d("TAG", "No such document");
                     }
-                }), 3000);
-                new Handler().postDelayed(() -> updateLinear.setVisibility(View.VISIBLE), 3000);
-            }
+                } else {
+                    Log.d("TAG", "get failed with ", task.getException());
+                }
+            }), 3000);
+            new Handler().postDelayed(() -> updateLinear.setVisibility(View.VISIBLE), 3000);
         });
 
         // stroll through the descriptions of the specific tree clicked.
-        nextDescription.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // loop through all the values in the array, when get to the last value, set the text to the first value
-                Object [] desArray = chosenTreeDes.entrySet().toArray();
-                int maxDes = chosenTreeDes.entrySet().toArray().length;
-                if(gDes >= maxDes) gDes =0;
-                existTreeDescription.setText(desArray[gDes].toString());
-                gDes++;
-        }});
+        nextDescription.setOnClickListener(view -> {
+            // loop through all the values in the array, when get to the last value, set the text to the first value
+            Object [] desArray = chosenTreeDes.entrySet().toArray();
+            int maxDes = chosenTreeDes.entrySet().toArray().length;
+            if(gDes >= maxDes) gDes =0;
+            existTreeDescription.setText(desArray[gDes].toString());
+            gDes++;
+    });
 
         // GUI to add description
-        existAddTreeDes.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                addExtraLinear.setVisibility(View.VISIBLE);
-                updateLinear.setVisibility(View.INVISIBLE);
-                addExtraEdit.addTextChangedListener(new TextWatcher() {
-                    @Override
-                    public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                    }
-                    @Override
-                    public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                    }
-                    @Override
-                    public void afterTextChanged(Editable editable) {
-                        desExtra = editable.toString();
-                    }
-                });
-                conExtraDes.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
+        existAddTreeDes.setOnClickListener(view -> {
+            addExtraLinear.setVisibility(View.VISIBLE);
+            updateLinear.setVisibility(View.INVISIBLE);
+            addExtraEdit.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                }
+                @Override
+                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                }
+                @Override
+                public void afterTextChanged(Editable editable) {
+                    desExtra = editable.toString();
+                }
+            });
+            conExtraDes.setOnClickListener(view12 -> {
 
-                        // concatenate the last description the list already ecxited.
-                        chosenTreeDes.put(new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date()) ,desExtra);
-                        // add the update description list
-                        TreeServer.updateTree(db , (DocumentReference) docRefList.get(1), 2, chosenTreeDes, mAuth);
-                        addExtraLinear.setVisibility(View.INVISIBLE);
-                        existAddTreeDes.setVisibility(View.VISIBLE);
-                    }
-                });
-            }
+                // concatenate the last description the list already exists
+                chosenTreeDes.put(new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date()) ,desExtra);
+                // add the update description list
+                TreeServer.updateTree(db , (DocumentReference) docRefList.get(1), 2, chosenTreeDes, mAuth);
+                addExtraLinear.setVisibility(View.INVISIBLE);
+                existAddTreeDes.setVisibility(View.VISIBLE);
+            });
         });
 
         // update the tre condition component
-        updateTreeCond.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // if user isn't signed in - show a toast 'you must be signed in to update the tree' and return
-                if (signedIn == false) {
-                    Toast.makeText(MapsActivity.this, "You must be signed in to update the tree", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                updateTreeConditionLinear.setVisibility(View.VISIBLE);
-                updateLinear.setVisibility(View.INVISIBLE);
-                treeCondUpdate.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-                    @Override
-                    public void onCheckedChanged(RadioGroup radioGroup, int i) {
-                        switch (i) {
-                            case R.id.autumnButton:
-                                treeCondSts = "Autumn";
-                                break;
-                            case R.id.bloomButton:
-                                treeCondSts = "Bloom";
-                                break;
-                            case R.id.flowersButton:
-                                treeCondSts = "Flowers";
-                                break;
-                            case R.id.ripeButton:
-                                treeCondSts = "Ripe";
-                                break;
-                        }
-                    }
-                });
-                confirmCondButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        //use upadate method in TresServer to update the tree condition
-                        TreeServer.updateTree(db, (DocumentReference) docRefList.get(0), 1, treeCondSts, mAuth);
-                        //update the condition field of the docRef
-                        updateTreeConditionLinear.setVisibility(View.INVISIBLE);
-                    }
-                });
+        updateTreeCond.setOnClickListener(view -> {
+            // if user isn't signed in - show a toast 'you must be signed in to update the tree' and return
+            if (!signedIn) {
+                Toast.makeText(MapsActivity.this, "You must be signed in to update the tree", Toast.LENGTH_SHORT).show();
+                return;
             }
+            updateTreeConditionLinear.setVisibility(View.VISIBLE);
+            updateLinear.setVisibility(View.INVISIBLE);
+            treeCondUpdate.setOnCheckedChangeListener((radioGroup, i) -> {
+                switch (i) {
+                    case R.id.autumnButton:
+                        treeCondSts = "Autumn";
+                        break;
+                    case R.id.bloomButton:
+                        treeCondSts = "Bloom";
+                        break;
+                    case R.id.flowersButton:
+                        treeCondSts = "Flowers";
+                        break;
+                    case R.id.ripeButton:
+                        treeCondSts = "Ripe";
+                        break;
+                }
+            });
+            confirmCondButton.setOnClickListener(view13 -> {
+                //use update method in TresServer to update the tree condition
+                TreeServer.updateTree(db, (DocumentReference) docRefList.get(0), 1, treeCondSts, mAuth);
+                //update the condition field of the docRef
+                updateTreeConditionLinear.setVisibility(View.INVISIBLE);
+            });
         });
 
         //set the listener on the update the rating value based on the rating bar
-        rateTree.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-            @Override
-            public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
+        rateTree.setOnRatingBarChangeListener((ratingBar, v, b) -> {
 
-                //Update only available for signed in users
-                if (signedIn == false) {
-                    Toast.makeText(MapsActivity.this, "You must be signed in to update the tree rating", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                else {
-                    ArrayList<Object>  ratingAtrr= new ArrayList<>();
-                    ratingAtrr.add((int)v); // user's rating
-                    ratingAtrr.add(1, numOfRatings);// number of ratings by all users
-                    ratingAtrr.add(2, totalRating);// total rating score
-                    // Update the rating in the server
-                    TreeServer.updateTree(db, (DocumentReference) docRefList.get(0), 0, ratingAtrr, mAuth);
-                    //lock the rating bar
-                    rateTree.setIsIndicator(true);
-                }
+            //Update only available for signed in users
+            if (!signedIn) {
+                Toast.makeText(MapsActivity.this, "You must be signed in to update the tree rating", Toast.LENGTH_SHORT).show();
+            }
+            else {
+                ArrayList<Object>  ratingAtrr= new ArrayList<>();
+                ratingAtrr.add((int)v); // user's rating
+                ratingAtrr.add(1, numOfRatings);// number of ratings by all users
+                ratingAtrr.add(2, totalRating);// total rating score
+                // Update the rating in the server
+                TreeServer.updateTree(db, (DocumentReference) docRefList.get(0), 0, ratingAtrr, mAuth);
+                //lock the rating bar
+                rateTree.setIsIndicator(true);
             }
         });
 
-        exitDetails.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                updateLinear.setVisibility(View.INVISIBLE);
-            }
-        });
+        exitDetails.setOnClickListener(view -> updateLinear.setVisibility(View.INVISIBLE));
 
         new Handler().postDelayed(() -> moreDetails.setVisibility(View.INVISIBLE), 3000);
         new Handler().postDelayed(() -> delTreeButton.setVisibility(View.INVISIBLE), 3000);
@@ -609,13 +532,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     public void addTreeForm(LatLng latLng) {
 
         addTreeLinear = findViewById(R.id.form);
-        addTreeText = findViewById(R.id.treeNameText);
+        TextView addTreeText = findViewById(R.id.treeNameText);
         addTreeEdit = findViewById(R.id.treeNameEdit);
-        addDesText = findViewById(R.id.treeDescribeText);
+        TextView addDesText = findViewById(R.id.treeDescribeText);
         addDesEdit = findViewById(R.id.treeDescribeEdit);
-        treeCond = findViewById(R.id.treeCond);
-        exitTreeForm = findViewById(R.id.exitForm);
-        confirmTreeForm = findViewById(R.id.confirmTree);
+        RadioGroup treeCond = findViewById(R.id.treeCond);
+        Button exitTreeForm = findViewById(R.id.exitForm);
+        Button confirmTreeForm = findViewById(R.id.confirmTree);
         addTreeLinear.setVisibility(View.VISIBLE);
         addTreeEdit.addTextChangedListener(new TextWatcher() {
             @Override
@@ -766,11 +689,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         locationB.setLongitude(usersLocation.longitude);
 
         float distance = locationA.distanceTo(locationB);
-        if (distance > 50) {
-            return true;
-        } else {
-            return false;
-        }
+        return distance > 50;
     }
 
     // remove all markers from the map
