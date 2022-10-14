@@ -21,17 +21,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-// enum MarkerChoice with ALLTREES, MINE, RIPE, SPECIFIC
-//enum MarkerChoice {
-//    ALLTREES, MINE, RIPE, SPECIFIC
-//}
-
-
+enum MarkerChoice {ALL_TREES, MINE, RIPE, SPECIFIC}
 
 
 public class TreeServer {
 
     // CRUD operations //
+
 
     // create //
 
@@ -223,6 +219,7 @@ public class TreeServer {
     // this function updates the tree and the description in the database
     public static void updateTree(FirebaseFirestore db, DocumentReference docR, int filter, Object obj, FirebaseAuth mAuth) {
         switch (filter) {
+            // ALL_TREES
             case 0: // update the rating in the 'tree' collection
                 int rating = (int) ((ArrayList<Object>) obj).get(0);
                 int numOfRatings = (int) ((ArrayList<Object>) obj).get(1);
@@ -238,10 +235,12 @@ public class TreeServer {
                 break;
             case 1: // update the Condition in the 'tree' collection
                 docR.update("condition", obj);
+                addLog(db, mAuth, "updated tree " + docR.getId() + "condition " + obj.toString());
 
                 break;
             case 2: // update the description
                 docR.update("des", obj);
+                addLog(db, mAuth, "updated tree " + docR.getId() + "description " + obj.toString());
                 break;
         }
     }
@@ -249,6 +248,9 @@ public class TreeServer {
     // delete //
 
     //delete tree marker and description based on LatLng
+    // start by deleting the marker from the 'markers' collection
+    // then delete the description from the 'trees' collection
+    // and finally delete the description from the 'description' collection
     public static void deleteTree(FirebaseFirestore db, LatLng latLng) {
         db.collection("markers")
                 .whereEqualTo("position.latitude", latLng.latitude)
@@ -275,13 +277,14 @@ public class TreeServer {
                 });
     }
 
+
+    // logging //
+    // this function is a generic utility that adds a log to the 'logs' collection with a timestamp
     public static void addLog(FirebaseFirestore db, FirebaseAuth userName, String log) {
         Map<Object, String> dLog = new HashMap<>();
         dLog.put(userName.getCurrentUser().getEmail(), new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()) + " | " + log);
         db.collection("Logs").add(dLog);
     }
-
-
 
 
 }
