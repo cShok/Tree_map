@@ -45,8 +45,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.navigation.NavigationView;
@@ -56,7 +54,6 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
@@ -93,15 +90,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onStart() {
         super.onStart();
-        Log.i("onStart", "onStart called");
     }
+
+    // Initializes FireBase Client, Google Sign In Client, and Google Map Activity
+    // Also, sets up the navigation drawer and top-bar, and the sign in button
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.i("onCreate", "onCreate called");
         // Initialize Firebase Auth
         mAuth = FirebaseAuth.getInstance();
-
         binding = ActivityMapsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
@@ -110,12 +107,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
-        // set db
+        // Initialize Firebase Database
         db = FirebaseFirestore.getInstance();
 
-        // Assign variable
-        btSignIn = findViewById(R.id.bt_sign_in);
-        btLogout = findViewById(R.id.bt_logout);
 
         // Initialize sign in options
         GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(
@@ -124,10 +118,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .requestEmail()
                 .build();
 
+        btSignIn = findViewById(R.id.bt_sign_in);
+        btLogout = findViewById(R.id.bt_logout);
+
         // Initialize sign in client
         googleSignInClient = GoogleSignIn.getClient(MapsActivity.this
                 , googleSignInOptions);
-
         btSignIn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -137,7 +133,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 startActivityForResult(intent, 100);
             }
         });
-
         btLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -165,12 +160,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         MaterialToolbar toolbar = findViewById(R.id.topAppBar);
         DrawerLayout drawerLayout = findViewById(R.id.autumnUpdate);
         NavigationView navigationView = findViewById(R.id.navigation_view);
+
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 drawerLayout.openDrawer(GravityCompat.START);
             }
         });
+
         navigationView.setNavigationItemSelectedListener(new NavigationView.OnNavigationItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull @org.jetbrains.annotations.NotNull MenuItem item) {
@@ -180,19 +177,22 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 removeMarkers();
                 ArrayList <Object> filters = new ArrayList<>();
                 switch (id) {
+                    // all trees
                     case R.id.nav_all_trees:
                         filters.add(0, 0);
                         Toast.makeText(getApplicationContext(), "All trees", Toast.LENGTH_SHORT).show();
                         break;
+                    // my trees
                     case R.id.nav_my_trees:
                         Toast.makeText(MapsActivity.this, "Showing your trees", Toast.LENGTH_SHORT).show();
                         filters.add(0, 1);
                         break;
+                    // ripe trees
                     case R.id.fruit_now:
                         Toast.makeText(MapsActivity.this, "Tree that have fruit on them", Toast.LENGTH_SHORT).show();
                         filters.add(0, 3);
                         break;
-                    //present markers based on users input
+                    // type of tree
                     case R.id.tree_type:
                         getFilterType();
                         filters.add(0, 2);
@@ -201,18 +201,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     default:
                         return true;
                 }
-                Log.i("filters", filters.toString());
+                // get the trees from the database by calling the generic function
                 TreeServer.getMarkers(mMap, db, mAuth, filters);
                 return true;
             }
         });
     }
 
-
+    // get the map when ready and ask for loaction permissions,
     @Override
     public void onMapReady(GoogleMap googleMap) {
+
+        // initialize the map in the activity
         mMap = googleMap;
-        Log.i("onMapReady", "onMapReady: ");
+
         //location permission - if not granted, ask for it
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             mMap.setMyLocationEnabled(true);
@@ -220,10 +222,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         }
 
-        LatLng Jerusalem = new LatLng(31.780768889465804, 35.21472375890298);
+        LatLng Jerusalem = new LatLng(31.7807688, 35.21472);
         mMap.moveCamera(CameraUpdateFactory.newLatLng(Jerusalem));
         mMap.moveCamera(CameraUpdateFactory.zoomTo(50000));
-        mMap.setOnMarkerClickListener(this::onMarkerClick);//marker pushed
+
+        // set listener for when the user clicks on the marker, to extract and update the tree data.
+        mMap.setOnMarkerClickListener(this::onMarkerClick);
+
+        // set listener for when the user clicks on the map, to add a new tree
         mMap.setOnMapLongClickListener(this::onMapLongClick);//long push
 
         // get your maps fragment
@@ -231,10 +237,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Extract My Location View from maps fragment
         locationButton = mapFragment.getView().findViewById(0x2);
-
-        // Change the visibility of my location button
-        if (locationButton != null)
-            locationButton.setVisibility(View.GONE);
 
         findViewById(R.id.ic_location).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -246,13 +248,15 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
             }
         });
+        // get all the markers from the database and refresh the map
         updateUI();
     }
+
+
+    // implementing Google sign in using google authentication with Firebase
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Log.i("onActivityResult", "onActivityResult called");
-        // Check condition
         if (requestCode == 100) {
             Task<GoogleSignInAccount> signInAccountTask = GoogleSignIn
                     .getSignedInAccountFromIntent(data);
@@ -278,13 +282,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                                         // Check condition
                                         if (task.isSuccessful()) {
                                             displayToast("You have successfully signed in");
-                                            addUserToDatabase();
+                                            TreeServer.createUser(db, mAuth);
                                             signedIn = true;
                                             onStart();
                                             updateUI();
                                         } else {
-                                            // When task is unsuccessful
-                                            // Display Toast
+                                            // When task is unsuccessful - display Toast
                                             displayToast("Authentication Failed :" + task.getException()
                                                     .getMessage());
                                         }
@@ -299,47 +302,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
-    private void addUserToDatabase() {
-        // if user doesn't exist in database in the collection "users" then add him
-        DocumentReference docRef = db.collection("users").document(mAuth.getCurrentUser().getUid());
-        docRef.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-                if (task.isSuccessful()) {
-                    DocumentSnapshot document = task.getResult();
-                    if (document.exists()) {
-                       //add timestamp to value 'lastLogin'
-                        Map<String, Object> lastLogin = new HashMap<>();
-                        lastLogin.put("last Login", FieldValue.serverTimestamp());
-                        db.collection("users").document(mAuth.getCurrentUser().getUid()).update(lastLogin);
-                    } else {
-                        Log.d("TAG", "No such document");
-                        Map<String, Object> user = new HashMap<>();
-                        user.put("name", mAuth.getCurrentUser().getDisplayName());
-                        user.put("email", mAuth.getCurrentUser().getEmail());
-                        user.put("last Login", FieldValue.serverTimestamp());
-                        db.collection("users").document(mAuth.getCurrentUser().getUid())
-                                .set(user)
-                                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        Log.d("TAG", "DocumentSnapshot successfully written!");
-                                    }
-                                })
-                                .addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        Log.w("TAG", "Error writing document", e);
-                                    }
-                                });
-                    }
-                } else {
-                    Log.d("TAG", "get failed with ", task.getException());
-                }
-            }
-        });
-
-    }
 
     //map and marker functions
     public void onMapLongClick(LatLng latLng) {
@@ -436,8 +398,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 new Handler().postDelayed(() -> docRefList.get(1), 3000);
                 DocumentReference docRefTree = (DocumentReference) docRefList.get(0);
                 DocumentReference docRefDes = (DocumentReference) docRefList.get(1);
-                Log.i("docRefTree", docRefTree.toString());
-                Log.i("docRefDes", docRefDes.toString());
                 Toast.makeText(getApplicationContext(), "Loading Tree Data...", Toast.LENGTH_SHORT).show();
                 new Handler().postDelayed(() ->   docRefTree.get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
 
