@@ -86,7 +86,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private View locationButton;
     private Map<String, String> chosenTreeDes = new HashMap<>();
 
-    //general functions
+
+    //Boot and activities management functions//
+
+
     @Override
     public void onStart() {
         super.onStart();
@@ -208,7 +211,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    // get the map when ready and ask for loaction permissions,
+    // get the map when ready and ask for location permissions,
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
@@ -305,7 +308,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    //map and marker functions
+    //map and marker functions//
+
+    // when user long clicks on the map, add a new tree to the database, using user input and location as
+    // parameter for the tree marker and description
     public void onMapLongClick(LatLng latLng) {
         updateUI();
 
@@ -331,6 +337,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .show();
     }
 
+    // when user clicks on a marker, show the tree data and offer to update the tree data
     public boolean onMarkerClick(final Marker marker) {
 
         moreDetails = findViewById(R.id.more_details); // The button for more details
@@ -579,7 +586,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    // tree functions
+
+    // tree's functions //
+
+    // gets the full information to add, arrange in JSON like format and add to the server
     public void addTree(LatLng latLng) {
         Map<String, Object> tree = new HashMap<>();
         tree.put("name", addTreeName.toString());
@@ -595,6 +605,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         new Handler().postDelayed(() -> updateUI(), 3000);
 
     }
+
+    //get the tree information from user and call addTree function
     public void addTreeForm(LatLng latLng) {
 
         //TODO add verify name, description and condition
@@ -676,6 +688,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             }
         });
     }
+
+    //get the user input of the type of tree and call server with only trees of that type.
     private void getFilterType() {
 
         EditText input = new EditText(MapsActivity.this);
@@ -699,19 +713,23 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     // utils //
 
-    // update the UI to the default state
+    // update the UI to the default state (all markers)
     private void updateUI() {
+
         // Initialize google sign in account
         GoogleSignInAccount googleSignInAccount = GoogleSignIn.getLastSignedInAccount(MapsActivity.this);
-        //
+
+        // GUI to add trees (with long-click)
         addTreeLinear = findViewById(R.id.form);
         addTreeLinear.setVisibility(View.INVISIBLE);
+
         // Check condition
         if (googleSignInAccount != null) {
+
+            // global variables initialization
             signedIn = true;
 
             // When google sign in account is not null
-            // Set visibility
             btLogout.setVisibility(View.VISIBLE);
             btSignIn.setVisibility(View.GONE);
 
@@ -726,19 +744,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         } else {
             // When google sign in account is null
-            // Set visibility
             btLogout.setVisibility(View.GONE);
             btSignIn.setVisibility(View.VISIBLE);
         }
         // initialize array list object with 0,1
         ArrayList<Object> treeData = new ArrayList<>();
         treeData.add(0);
-
+        //gel all trees from server
         TreeServer.getMarkers(mMap, db, mAuth, treeData);
 
     }
-    // check if user is within the radius of the tree
+
+    // check if user is within the radius of the tree, to add and update trees.
     public boolean isWithinRadius(LatLng treePos) {
+
         Location locationA = new Location("point A");
         locationA.setLatitude(treePos.latitude);
         locationA.setLongitude(treePos.longitude);
@@ -754,11 +773,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             return false;
         }
     }
+
     // remove all markers from the map
     private void removeMarkers() {
         //remove all markers
         mMap.clear();
     }
+
     // display toast message
     private void displayToast(String s) {
         Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
