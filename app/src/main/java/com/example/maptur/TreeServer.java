@@ -46,7 +46,7 @@ public class TreeServer {
             description.put("TreeId", documentReference.getId());
             Map<String, String> desCol = new HashMap<>();
             // description in the format Timestamp, user name and the string description
-            desCol.put(new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()), treeDes);
+            desCol.put(new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date()), treeDes);
             description.put("des", desCol);
             // add the description map to the database
             db.collection("description").add(description).addOnSuccessListener(documentReference12 -> {
@@ -95,9 +95,9 @@ public class TreeServer {
 
     // read //
 
-    //method to retrieve tree data from the DB using lat,lng as the key
-    //first, retrieves the marker, then uses the foreign key of the tree to retrieve the tree and the description from their considerable tables
-    //docRef stores the document reference of the tree and the description
+    // method to retrieve tree data from the DB using lat,lng as the key
+    // first, retrieves the marker, then uses the foreign key of the tree to retrieve the tree and the description from their considerable tables
+    // docRef stores the document reference of the tree and the description
 
     public static void getTreeData(FirebaseFirestore db, LatLng latLng, ArrayList<Object> docRef, FirebaseAuth mAuth) {
 
@@ -252,10 +252,10 @@ public class TreeServer {
 
     // delete //
 
-    //delete tree marker and description based on LatLng
-    // start by deleting the marker from the 'markers' collection
-    // then delete the description from the 'trees' collection
-    // and finally delete the description from the 'description' collection
+    /* delete tree marker and description based on LatLng
+     starts by deleting the marker from the 'markers' collection
+     then delete the description from the 'trees' collection
+     and finally delete the description from the 'description' collection */
     public static void deleteTree(FirebaseFirestore db, LatLng latLng) {
         db.collection("markers")
                 .whereEqualTo("position.latitude", latLng.latitude)
@@ -294,7 +294,7 @@ public class TreeServer {
             username = userName.getCurrentUser().getEmail();
         }
         Map<Object, String> dLog = new HashMap<>();
-        dLog.put(username, new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date()) + " | " + log);
+        dLog.put(username, new SimpleDateFormat("dd.MM.yyyy HH:mm").format(new Date()) + " | " + log);
         db.collection("Logs").add(dLog);
     }
 

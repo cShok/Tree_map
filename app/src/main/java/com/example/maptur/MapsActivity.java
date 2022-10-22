@@ -89,11 +89,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     //Boot and activities management functions//
 
 
-    @Override
-    public void onStart() {
-        super.onStart();
-    }
-
     // Initializes FireBase Client, Google Sign In Client, and Google Map Activity
     // Also, sets up the navigation drawer and top-bar, and the sign in button
     @Override
@@ -111,7 +106,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Initialize Firebase Database
         db = FirebaseFirestore.getInstance();
-
 
         // Initialize sign in options
         GoogleSignInOptions googleSignInOptions = new GoogleSignInOptions.Builder(
@@ -193,47 +187,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         });
     }
 
-    // get the map when ready and ask for location permissions,
     @Override
-    public void onMapReady(GoogleMap googleMap) {
-
-        // initialize the map in the activity
-        mMap = googleMap;
-
-        //location permission - if not granted, ask for it
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            mMap.setMyLocationEnabled(true);
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
-        }
-
-        LatLng Jerusalem = new LatLng(31.7807688, 35.21472);
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(Jerusalem));
-        mMap.moveCamera(CameraUpdateFactory.zoomTo(50000));
-
-        // set listener for when the user clicks on the marker, to extract and update the tree data.
-        mMap.setOnMarkerClickListener(this::onMarkerClick);
-
-        // set listener for when the user clicks on the map, to add a new tree
-        mMap.setOnMapLongClickListener(this::onMapLongClick);//long push
-
-        // get your maps fragment
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-
-        // Extract My Location View from maps fragment
-        locationButton = mapFragment.getView().findViewById(0x2);
-
-        findViewById(R.id.ic_location).setOnClickListener(v -> {
-
-            if (mMap != null) {
-                if (locationButton != null)
-                    locationButton.callOnClick();
-            }
-        });
-        // get all the markers from the database and refresh the map
-        updateUI();
+    public void onStart() {
+        super.onStart();
     }
-
 
     // implementing Google sign in using google authentication with Firebase
     @Override
@@ -283,8 +240,49 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
     }
 
+    // get the map when ready and ask for location permissions,
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
 
-    //map and marker functions//
+        // initialize the map in the activity
+        mMap = googleMap;
+
+        // location permission - if not granted, ask for it
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            mMap.setMyLocationEnabled(true);
+        } else {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+        }
+
+        LatLng Jerusalem = new LatLng(31.7807688, 35.21472);
+        mMap.moveCamera(CameraUpdateFactory.newLatLng(Jerusalem));
+        mMap.moveCamera(CameraUpdateFactory.zoomTo(50000));
+
+        // set listener for when the user clicks on the marker, to extract and update the tree data.
+        mMap.setOnMarkerClickListener(this::onMarkerClick);
+
+        // set listener for when the user clicks on the map, to add a new tree
+        mMap.setOnMapLongClickListener(this::onMapLongClick);//long push
+
+        // get your maps fragment
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
+
+        // Extract My Location View from maps fragment
+        locationButton = mapFragment.getView().findViewById(0x2);
+
+        findViewById(R.id.ic_location).setOnClickListener(v -> {
+
+            if (mMap != null) {
+                if (locationButton != null)
+                    locationButton.callOnClick();
+            }
+        });
+        // get all the markers from the database and refresh the map
+        updateUI();
+    }
+
+
+    // Map and Marker functions//
 
     // when user long clicks on the map, add a new tree to the database, using location as
     // parameter for the marker, calls addTreeForm if succeeded.
@@ -314,7 +312,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 .show();
     }
 
-    // main function to gt the tree data and description when user clicks on a marker, show the tree data and offer to update the tree data
+    // main function to get the tree data and description when user clicks on a marker, show the tree data and offer to update the tree data
     // delete option as well.
     public boolean onMarkerClick(final Marker marker) {
 
@@ -524,11 +522,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    // tree's functions //
+    // Tree's functions //
 
-
-
-    //get the new tree information from user and call addTree function
+    // get the new tree information from user and call addTree function
     public void addTreeForm(LatLng latLng) {
 
         addTreeLinear = findViewById(R.id.form);
@@ -633,7 +629,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    // utils //
+    // Utils //
 
     // update the UI to the default state (all markers)
     private void updateUI() {
@@ -672,9 +668,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // initialize array list object with 0,1
         ArrayList<Object> treeData = new ArrayList<>();
         treeData.add(0);
+
         //gel all trees from server
         TreeServer.getMarkers(mMap, db, mAuth, treeData);
-
     }
 
     // check if user is within the radius of the tree, to add and update trees.
@@ -694,7 +690,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     // remove all markers from the map
     private void removeMarkers() {
-        //remove all markers
+        // remove all markers
         mMap.clear();
     }
 
